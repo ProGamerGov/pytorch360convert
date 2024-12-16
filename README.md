@@ -206,11 +206,11 @@ If you use this library in your research or project, please refer to the include
   author={Egan, Ben},
   year={2024},
   publisher={GitHub},
-  howpublished={\url{https://github.com/ProGamerGov/pytorch-360-convert}}
+  howpublished={\url{https://github.com/ProGamerGov/pytorch360convert}}
 }
 ```
 
 ### APA Style
 ```
-Egan, B. (2024). PyTorch 360° Image Conversion Toolkit [Computer software]. GitHub. https://github.com/ProGamerGov/pytorch-360-convert
+Egan, B. (2024). PyTorch 360° Image Conversion Toolkit [Computer software]. GitHub. https://github.com/ProGamerGov/pytorch360convert
 ```
