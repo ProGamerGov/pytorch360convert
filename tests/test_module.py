@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 import torch
-from pytorch360covert import c2e, e2c
+from pytorch360convert import c2e, e2c
 
 
 class BaseTest(unittest.TestCase):
@@ -31,8 +31,8 @@ def assertTensorAlmostEqual(
             Default: 0.0001
     """
     self.assertEqual(actual.shape, expected.shape)
-    self.assertEqual(actual.device == expected.device)
-    self.assertEqual(actual.dtype == expected.dtype)
+    self.assertEqual(actual.device, expected.device)
+    self.assertEqual(actual.dtype, expected.dtype)
     self.assertAlmostEqual(
         torch.sum(torch.abs(actual - expected)).item(), 0.0, delta=delta
     )
@@ -70,7 +70,7 @@ class TestBothC2EAndE2C(BaseTest):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [1, 3, face_width, face_width])
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         assertTensorAlmostEqual(self, cubic_img, test_faces)
 
     def test_c2e_then_e2c_gpu(self) -> None:
@@ -89,6 +89,6 @@ class TestBothC2EAndE2C(BaseTest):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [1, 3, face_width, face_width])
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         self.assertTrue(cubic_img.is_cuda)
         assertTensorAlmostEqual(self, cubic_img, test_faces)
