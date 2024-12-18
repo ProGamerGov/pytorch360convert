@@ -49,3 +49,12 @@ def _create_test_faces(face_height: int = 512, face_width: int = 512) -> torch.T
     # Create and color faces (6 squares)
     faces = torch.ones([6, 3] + [face_height, face_width]) * face_colors
     return faces
+
+
+class TestBothC2EThenE2C(BaseTest):
+    def test_c2e_then_e2c(self) -> None:
+        face_width = 512
+        test_faces = _create_test_faces(face_width, face_width)
+        equi_img = c2e(test_faces, face_width * 2, face_width * 4, mode='bilinear', cube_format='stack')
+        cubic_img = e2c(equi_img, face_w=face_width, mode='bilinear', cube_format='stack')
+        assertTensorAlmostEqual(self, cubic_img, test_faces)
