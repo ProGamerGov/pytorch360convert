@@ -180,13 +180,11 @@ Converts a cubemap projection to an equirectangular image.
   - `w` (int): Output image width.
   - `mode` (str, optional): Sampling interpolation mode. Options are 'bilinear' and 'nearest'. Default: 'bilinear'
   - `cube_format` (str, optional): Input cubemap format. Options are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
-            - 'stack': Stack of 6 faces (torch.Tensor), in the order of  ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
-            - 'list': List of 6 faces (List[torch.Tensor]), in the order of ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
-            - 'dict': Dictionary with keys pointing to face tensors:
-                (Dict[str, torch.Tensor]). Keys are expected to be:
-                ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
-            - 'dice': A cubemap in a 'dice' layout (torch.Tensor).
-            - 'horizon': A cubemap in a 'horizon' layout (torch.Tensor).
+    - 'stack': Stack of 6 faces (torch.Tensor), in the order of  ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
+    - 'list': List of 6 faces (List[torch.Tensor]), in the order of ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
+    - 'dict': Dictionary with keys pointing to face tensors: (Dict[str, torch.Tensor]). Keys are expected to be: ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
+    - 'dice': A cubemap in a 'dice' layout (torch.Tensor).
+    - 'horizon': A cubemap in a 'horizon' layout (torch.Tensor).
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of 'True'
      
 - **Returns**: Equirectangular projection of the input cubemap as a tensor.
