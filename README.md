@@ -181,8 +181,8 @@ Converts a cubemap projection to an equirectangular image.
 
 - **Parameters**:
   - `cubemap` (torch.Tensor, list of torch.Tensor, or dict of torch.Tensor): Cubemap image tensor, list of tensors, or dict of tensors. Note that tensors should be in the shape of: 'CHW'. Inputs should match the corresponding `cube_format`.
-  - `h` (int): Output image height.
-  - `w` (int): Output image width.
+  - `h` (int): Output image height. Use `<face_width> * 2` unless you want a smaller image.
+  - `w` (int): Output image width. Use `<face_width> * 4` unless you want a smaller image.
   - `mode` (str, optional): Sampling interpolation mode. Options are 'bilinear' and 'nearest'. Default: 'bilinear'
   - `cube_format` (str, optional): Input cubemap format. Options are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
     - 'stack': Stack of 6 faces (torch.Tensor), in the order of:  ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
