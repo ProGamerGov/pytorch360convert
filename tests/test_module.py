@@ -2,6 +2,7 @@
 import random
 import unittest
 import torch
+from pytorch360covert import c2e, e2c
 
 
 class BaseTest(unittest.TestCase):
