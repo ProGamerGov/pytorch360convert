@@ -1,5 +1,7 @@
 # 📷 PyTorch 360° Image Conversion Toolkit
 
+[![PyPI - Version](https://img.shields.io/pypi/v/pytorch360convert)](https://pypi.org/project/pytorch360convert/)
+
 
 ## Overview
 
@@ -33,6 +35,14 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 
 
 ## 📦 Installation
+
+You can easily install the library using pip:
+
+```bash
+pip install pytorch360convert
+```
+
+Or you can install it from source like this:
 
 ```bash
 pip install torch
