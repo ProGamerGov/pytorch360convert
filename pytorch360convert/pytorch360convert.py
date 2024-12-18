@@ -729,7 +729,8 @@ def e2c(
     h, w = e_img.shape[:2]
     order = 1 if mode == "bilinear" else 0
 
-    # returns [face_w, face_w*6, 3] in order [F, R, B, L, U, D]
+    # returns [face_w, face_w*6, 3] in order
+    # [Front, Right, Back, Left, Up, Down]
     xyz = xyzcube(face_w, device=e_img.device, dtype=e_img.dtype)
     uv = xyz2uv(xyz)
     coor_xy = uv2coor(uv, h, w)
