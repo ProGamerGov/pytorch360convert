@@ -2,6 +2,8 @@
 import random
 import unittest
 
+import numpy as np
+
 import torch
 from pytorch360covert import c2e, e2c
 
