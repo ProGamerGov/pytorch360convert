@@ -548,8 +548,8 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
 
 def c2e(
     cubemap: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]],
-    h: int,
-    w: int,
+    h: Optional[int] = None,
+    w: Optional[int] = None,
     mode: str = "bilinear",
     cube_format: str = "dice",
     device: torch.device = torch.device("cpu"),
@@ -565,8 +565,10 @@ def c2e(
             ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']. If
             `cubemap_format` is set to 'dict', the dictionary keys should be
             ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
-        h (int): Height of the output equirectangular image.
-        w (int): Width of the output equirectangular image.
+        h (int, optional): Height of the output equirectangular image. If set
+            to None, <cube_face_width> * 2 will be used.
+        w (int, optional): Width of the output equirectangular image. If set
+            to None, <cube_face_width> * 4 will be used.
         mode (str, optional): Sampling interpolation mode, 'nearest' or
             'bilinear'. Defaults to 'bilinear'.
         cube_format (str, optional): Output cubemap format. Defaults to 'dice'.
@@ -588,6 +590,7 @@ def c2e(
     Raises:
         NotImplementedError: If an unknown cube_format is provided.
     """
+
     if cube_format == "stack":
         assert (
             isinstance(cubemap, torch.Tensor)
@@ -628,6 +631,10 @@ def c2e(
 
     face_w = cube_h.shape[0]
     assert cube_h.shape[1] == face_w * 6
+
+    h = face_w * 2 if not h else h
+    w = face_w * 4 if not w else w
+
     assert w % 8 == 0
 
     uv = equirect_uvgrid(h, w, device=device)
