@@ -34,7 +34,7 @@ def assertTensorAlmostEqual(
     )
 
 
-def _create_test_faces(face_height = 512, face_width = 512):
+def _create_test_faces(face_height: int = 512, face_width: int = 512) -> torch.Tensor:
     # Create unique colors for faces (6 colors)
     face_colors = [
         [0.0, 0.0, 0.0],
