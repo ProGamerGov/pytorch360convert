@@ -6,7 +6,7 @@ import numpy as np
 
 import torch
 import math
-from pytorch360convert import (
+from pytorch360convert.pytorch360convert import (
     rotation_matrix,
     xyzcube,
     equirect_uvgrid,
