@@ -19,11 +19,18 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/ProGamerGov/pytorch360convert",
     keywords=[
-        "360-degree images",
+        "360 degree",
         "equirectangular",
         "cubemap",
         "image processing",
         "PyTorch",
+        "photo sphere",
+        "spherical photo",
+        "vr photography",
+        "pano",
+        "360 photo",
+        "360",
+        "perspective"
     ],
     python_requires=">=3.7",
     install_requires=[
