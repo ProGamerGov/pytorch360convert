@@ -594,7 +594,7 @@ def c2e(
             and len(cubemap.shape) == 4
             and cubemap.shape[0] == 6
         )
-        cubemap = [cubemap[i] for i in range(len(cubemap[0]))]
+        cubemap = [cubemap[i] for i in range(cubemap.shape[0])]
         cube_format = "list"
 
     # Ensure input is in HWC format for processing
