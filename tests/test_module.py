@@ -21,16 +21,6 @@ from pytorch360convert.pytorch360convert import (
 )
 
 
-class BaseTest(unittest.TestCase):
-    def setUp(self) -> None:
-        seed = 1234
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        torch.backends.cudnn.deterministic = True
-
-
 def assertTensorAlmostEqual(
     self, actual: torch.Tensor, expected: torch.Tensor, delta: float = 0.0001
 ) -> None:
