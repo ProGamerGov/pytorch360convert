@@ -597,6 +597,7 @@ def c2e(
     order = 1 if mode == "bilinear" else 0
 
     if cube_format == "horizon":
+        assert isinstance(cubemap, torch.Tensor)
         assert cubemap.dim() == 3
         cube_h = cubemap
     elif cube_format == "list":
