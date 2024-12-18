@@ -30,7 +30,7 @@ setup(
         "pano",
         "360 photo",
         "360",
-        "perspective"
+        "perspective",
     ],
     python_requires=">=3.7",
     install_requires=[
