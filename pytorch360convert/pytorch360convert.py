@@ -586,7 +586,6 @@ def c2e(
         if cube_format == "list" or cube_format == "stack":
             assert isinstance(cubemap, (list, tuple))
             assert all([isinstance(r, torch.Tensor) for r in cubemap])
-            assert all([len(r.shape) == 3 for r in cubemap])
             cubemap = [r.permute(1, 2, 0) for r in cubemap]
         elif cube_format == "dict":
             assert isinstance(cubemap, dict)
@@ -598,16 +597,19 @@ def c2e(
     order = 1 if mode == "bilinear" else 0
 
     if cube_format == "horizon":
+        assert cubemap.dim() == 3
         cube_h = cubemap
     elif cube_format == "list":
         assert isinstance(
             cubemap, (list, tuple)
         ), f"Expected cubemap to be a list or tuple, but got {type(cubemap)}"
+        assert all([r.dim() == 3 for r in cubemap])
         cube_h = cube_list2h(cubemap)
     elif cube_format == "dict":
         assert isinstance(
             cubemap, dict
         ), f"Expected cubemap to be a dict, but got {type(cubemap)}"
+        assert all(v.dim() == 3 for k, v in cubemap.items())
         cube_h = cube_dict2h(cubemap)
     elif cube_format == "dice":
         assert isinstance(
