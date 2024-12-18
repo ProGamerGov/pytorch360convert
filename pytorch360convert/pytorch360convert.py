@@ -329,7 +329,7 @@ def grid_sample_wrap(
         )
 
     # [1,C,H_out,W_out]
-    sampled = sampled.squeeze(0).permute(1, 2, 0)  # [H_out,W_out,C]
+    sampled = sampled.squeeze(0).permute(1, 2, 0)  # [H_out, W_out, C]
     return sampled
 
 
@@ -382,7 +382,7 @@ def sample_cubefaces(
     # First we must flatten all faces into a single big image (like cube_h)
     # The original, code tries to do complicated padding and wrapping.
     # We'll try a simpler approach: we have tp that selects face.
-    # We'll have to do per-face sampling. Instead of map_coordinates
+    # We can do per-face sampling. Instead of map_coordinates
     # (tp, y, x), we know each pixel belongs to a certain face.
 
     # For differentiability and simplicity, let's do a trick:
@@ -449,7 +449,10 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     return torch.cat(cube_list, dim=1)
 
 
-def cube_h2dict(cube_h: torch.Tensor) -> Dict[str, torch.Tensor]:
+def cube_h2dict(
+    cube_h: torch.Tensor,
+    face_keys: List[str] = ["Front", "Right", "Back", "Left", "Up", "Down"],
+) -> Dict[str, torch.Tensor]:
     """
     Convert a horizontal cube representation to a dictionary of cube faces.
 
@@ -459,31 +462,33 @@ def cube_h2dict(cube_h: torch.Tensor) -> Dict[str, torch.Tensor]:
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor of shape
             [w, w*6, C].
+        face_keys (List[str], optional): List of face keys in order. Defaults
+            to ["Front", "Right", "Back", "Left", "Up", "Down"].
 
     Returns:
-        Dict[str, torch.Tensor]: Dictionary of cube faces with keys 'F', 'R',
-            'B', 'L', 'U', 'D'.
+        Dict[str, torch.Tensor]: Dictionary of cube faces with keys
+            ["Front", "Right", "Back", "Left", "Up", "Down"].
     """
     cube_list = cube_h2list(cube_h)
-    keys = ["F", "R", "B", "L", "U", "D"]
-    return dict(zip(keys, cube_list))
+    return dict(zip(face_keys, cube_list))
 
 
 def cube_dict2h(
     cube_dict: Dict[str, torch.Tensor],
-    face_k: List[str] = ["F", "R", "B", "L", "U", "D"],
+    face_keys: List[str] = ["Front", "Right", "Back", "Left", "Up", "Down"],
 ) -> torch.Tensor:
     """
     Convert a dictionary of cube faces to a horizontal cube representation.
 
     Args:
         cube_dict (Dict[str, torch.Tensor]): Dictionary of cube faces.
-        face_k (List[str], optional): List of face keys in order. Defaults to ['F','R','B','L','U','D'].
+        face_keys (List[str], optional): List of face keys in order. Defaults
+            to ["Front", "Right", "Back", "Left", "Up", "Down"].
 
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
     """
-    return cube_list2h([cube_dict[k] for k in face_k])
+    return cube_list2h([cube_dict[k] for k in face_keys])
 
 
 def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
@@ -530,7 +535,6 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
         (w, w * 6, cube_dice.shape[2]), dtype=cube_dice.dtype, device=cube_dice.device
     )
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
-    keys = ["F", "R", "B", "L", "U", "D"]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w]
         if i in [1, 2]:
@@ -555,17 +559,28 @@ def c2e(
     Convert a cubemap to an equirectangular projection.
 
     Args:
-        cubemap (Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]): Input cubemap.
-            If cube_format is set to 'list', then faces should be arranged in the order of:
-            ['Front', 'Rright', 'Back', 'Left', 'Top', 'Bottom'].
+        cubemap (Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]):
+            The input cubemap. If `cube_format` is set to 'list' or 'stack' of
+            tensors, the faces should be arranged in the following order:
+            ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']. If
+            `cubemap_format` is set to 'dict', the dictionary keys should be
+            ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
         h (int): Height of the output equirectangular image.
         w (int): Width of the output equirectangular image.
-        mode (str, optional): Sampling interpolation mode. Defaults to 'bilinear'.
-        cube_format (str, optional): Input cubemap format. Defaults to 'dice'.
+        mode (str, optional): Sampling interpolation mode, 'nearest' or
+            'bilinear'. Defaults to 'bilinear'.
+        cube_format (str, optional): Output cubemap format. Defaults to 'dice'.
+            Options are:
+            - 'stack': Stack of 6 faces (torch.Tensor).
+            - 'list': List of 6 faces (List[torch.Tensor]).
+            - 'dict': Dictionary with keys pointing to face tensors:
+                (Dict[str, torch.Tensor]).
+            - 'dice': A cubemap in a 'dice' layout (torch.Tensor).
+            - 'horizon': A cubemap in a 'horizon' layout (torch.Tensor).
         device (torch.device, optional): Device to create tensor on. Defaults
             to torch.device('cpu').
-        channels_first (bool, optional): Input cubemap channel format. Defaults
-            to channels first.
+        channels_first (bool, optional): The channel format of e_img. Defaults
+            to 'True' for channels first.
 
     Returns:
         torch.Tensor: Equirectangular projection tensor.
@@ -580,46 +595,35 @@ def c2e(
             and cubemap.shape[0] == 6
         )
         cubemap = [cubemap[i] for i in range(len(cubemap[0]))]
+        cube_format = "list"
 
     # Ensure input is in HWC format for processing
     if channels_first:
-        if cube_format == "list" or cube_format == "stack":
-            assert isinstance(cubemap, (list, tuple))
-            assert all([isinstance(r, torch.Tensor) for r in cubemap])
+        if cube_format == "list" and isinstance(cubemap, (list, tuple)):
             cubemap = [r.permute(1, 2, 0) for r in cubemap]
-        elif cube_format == "dict":
-            assert isinstance(cubemap, dict)
+        elif cube_format == "dict" and isinstance(cubemap, dict):
             cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}
-        elif cube_format in ["horizon", "dice"]:
-            assert isinstance(cubemap, torch.Tensor)
+        elif cube_format in ["horizon", "dice"] and isinstance(cubemap, torch.Tensor):
             cubemap = cubemap.permute(1, 2, 0)
+        else:
+            raise NotImplementedError("unknown cube_format and cubemap type")
 
     order = 1 if mode == "bilinear" else 0
 
-    if cube_format == "horizon":
-        assert isinstance(cubemap, torch.Tensor)
+    if cube_format == "horizon" and isinstance(cubemap, torch.Tensor):
         assert cubemap.dim() == 3
         cube_h = cubemap
-    elif cube_format == "list":
-        assert isinstance(
-            cubemap, (list, tuple)
-        ), f"Expected cubemap to be a list or tuple, but got {type(cubemap)}"
+    elif cube_format == "list" and isinstance(cubemap, (list, tuple)):
         assert all([r.dim() == 3 for r in cubemap])
         cube_h = cube_list2h(cubemap)
-    elif cube_format == "dict":
-        assert isinstance(
-            cubemap, dict
-        ), f"Expected cubemap to be a dict, but got {type(cubemap)}"
+    elif cube_format == "dict" and isinstance(cubemap, dict):
         assert all(v.dim() == 3 for k, v in cubemap.items())
         cube_h = cube_dict2h(cubemap)
-    elif cube_format == "dice":
-        assert isinstance(
-            cubemap, torch.Tensor
-        ), f"Expected cubemap to be a tensor, but got {type(cubemap)}"
+    elif cube_format == "dice" and isinstance(cubemap, torch.Tensor):
         assert len(cubemap.shape) == 3
         cube_h = cube_dice2h(cubemap)
     else:
-        raise NotImplementedError("unknown cube_format")
+        raise NotImplementedError("unknown cube_format and cubemap type")
     assert isinstance(cube_h, torch.Tensor)  # Mypy wants this
 
     face_w = cube_h.shape[0]
@@ -688,17 +692,34 @@ def e2c(
         e_img (torch.Tensor): Input equirectangular image tensor of shape
             [C, H, W] or [H, W, C].
         face_w (int, optional): Width of each cube face. Defaults to 256.
-        mode (str, optional): Sampling interpolation mode. Defaults to
-            'bilinear'.
+        mode (str, optional): Sampling interpolation mode, 'nearest' or
+            'bilinear'. Defaults to 'bilinear'.
         cube_format (str, optional): Output cubemap format. Defaults to 'dice'.
+            The order for 'list' and 'stack' is expected to be:
+            ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
+            Full list of options are:
+            - 'stack': Stack of 6 faces (torch.Tensor).
+            - 'list': List of 6 faces (List[torch.Tensor]).
+            - 'dict': Dictionary with keys pointing to face tensors:
+                (Dict[str, torch.Tensor]). Keys are expected to be:
+                ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
+            - 'dice': A cubemap in a 'dice' layout (torch.Tensor).
+            - 'horizon': A cubemap in a 'horizon' layout (torch.Tensor).
         channels_first (bool, optional): The channel format of e_img. Defaults
-            to channels first.
+            to 'True' for channels first.
 
     Returns:
         Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]:
-            Cubemap in the specified format. If cube_format is set to 'list',
-            then faces wiil be arranged in the order of:
-            ['Front', 'Rright', 'Back', 'Left', 'Top', 'Bottom'].
+            The 'stack' and 'list' formats have faces in the order of:
+            ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].
+            The cubemap in the specified format:
+            - 'stack': Stack of 6 faces (torch.Tensor).
+            - 'list': List of 6 faces (List[torch.Tensor]).
+            - 'dict': Dictionary with keys pointing to face tensors
+              (Dict[str, torch.Tensor]). With keys:
+              ['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
+            - 'dice': A cubemap in a 'dice' layout (torch.Tensor).
+            - 'horizon': A cubemap in a 'horizon' layout (torch.Tensor).
 
     Raises:
         NotImplementedError: If an unknown cube_format is provided.
@@ -769,7 +790,7 @@ def e2p(
             to 0.
         mode (str, optional): Sampling interpolation mode. Defaults to 'bilinear'.
         channels_first (bool, optional): The channel format of e_img. Defaults
-            to channel first.
+            to 'True' for channels first.
 
     Returns:
         torch.Tensor: Perspective projection image tensor.
