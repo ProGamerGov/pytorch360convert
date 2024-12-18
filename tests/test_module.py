@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import random
 import unittest
+
 import torch
 from pytorch360covert import c2e, e2c
 
@@ -56,22 +57,36 @@ class TestBothC2EAndE2C(BaseTest):
     def test_c2e_then_e2c(self) -> None:
         face_width = 512
         test_faces = _create_test_faces(face_width, face_width)
-        equi_img = c2e(test_faces, face_width * 2, face_width * 4, mode='bilinear', cube_format='stack')
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
         self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
-        cubic_img = e2c(equi_img, face_w=face_width, mode='bilinear', cube_format='stack')
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
         self.assertEqual(list(cubic_img.shape), [1, 3, face_width, face_width])
         assertTensorAlmostEqual(self, cubic_img, test_faces)
 
     def test_c2e_then_e2c_gpu(self) -> None:
         if not torch.cuda.is_available():
-            raise unittest.SkipTest(
-                "Skipping CUDA test due to not supporting CUDA."
-            )
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
         face_width = 512
         test_faces = _create_test_faces(face_width, face_width)
-        equi_img = c2e(test_faces, face_width * 2, face_width * 4, mode='bilinear', cube_format='stack')
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
         self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
-        cubic_img = e2c(equi_img, face_w=face_width, mode='bilinear', cube_format='stack')
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
         self.assertEqual(list(cubic_img.shape), [1, 3, face_width, face_width])
         self.assertTrue(cubic_img.is_cuda)
         assertTensorAlmostEqual(self, cubic_img, test_faces)
