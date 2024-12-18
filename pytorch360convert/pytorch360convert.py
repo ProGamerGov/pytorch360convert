@@ -713,6 +713,7 @@ def e2c(
     out_c = sample_equirec(e_img, coor_xy, order)  # [face_w, 6*face_w, C]
     # out_c shape: we did it directly for each pixel in the cube map
 
+    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]
     if cube_format == "horizon":
         result = out_c
     elif cube_format == "list" or cube_format == "stack":
@@ -727,10 +728,13 @@ def e2c(
     # Convert to CHW if required
     if channels_first:
         if cube_format == "list" or cube_format == "stack":
+            assert isinstance(result, (list, tuple))
             result = [r.permute(2, 0, 1) for r in result]
         elif cube_format == "dict":
+            assert isinstance(result, dict)
             result = {k: v.permute(2, 0, 1) for k, v in result.items()}
         elif cube_format in ["horizon", "dice"]:
+            assert isinstance(result, torch.Tensor)
             result = result.permute(2, 0, 1)
     if cube_format == "stack" and isinstance(result, (list, tuple)):
         result = torch.stack(result)
