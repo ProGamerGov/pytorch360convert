@@ -436,3 +436,16 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
         self.assertTrue(cubic_img.requires_grad)
+
+    def test_c2e_list_horizon_nohw_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces = [test_faces[i] for i in range(test_faces.shape[0])]
+        equi_img = c2e(
+            test_faces,
+            mode="bilinear",
+            cube_format="list",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width, face_width * 4])
+        self.assertTrue(equi_img.requires_grad)
+
