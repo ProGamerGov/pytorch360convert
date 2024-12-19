@@ -272,7 +272,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_faces = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
         cubic_img = e2c(
-            equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         self.assertTrue(cubic_img.requires_grad)
@@ -321,7 +321,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_c2e_then_e2c_list_grad(self) -> None:
         face_width = 512
-        test_faces_tensors = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces_tensors = torch.ones(
+            [6, 3, face_width, face_width], requires_grad=True
+        )
         test_faces = {k: test_faces_tensors[i] for i, k in zip(range(6), dict_keys)}
         equi_img = c2e(
             test_faces,
@@ -340,7 +342,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             self.assertTrue(cubic_img[i].requires_grad)
 
     def test_c2e_dict_grad(self) -> None:
-        dict_keys =  ["Front", "Right", "Back", "Left", "Up", "Down"]
+        dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
         face_width = 512
         test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
         test_faces = [test_faces[i] for i in range(test_faces.shape[0])]
@@ -355,7 +357,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertTrue(equi_img.requires_grad)
 
     def test_e2c_dict_grad(self) -> None:
-        dict_keys =  ["Front", "Right", "Back", "Left", "Up", "Down"]
+        dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
         face_width = 512
         equi_img = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
         cubic_img = e2c(
@@ -367,9 +369,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
             self.assertTrue(cubic_img[i].requires_grad)
 
     def test_c2e_then_e2c_dict_grad(self) -> None:
-        dict_keys =  ["Front", "Right", "Back", "Left", "Up", "Down"]
+        dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
         face_width = 512
-        test_faces_tensors = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces_tensors = torch.ones(
+            [6, 3, face_width, face_width], requires_grad=True
+        )
         test_faces = {k: test_faces_tensors[i] for i, k in zip(range(6), dict_keys)}
         equi_img = c2e(
             test_faces,
@@ -404,7 +408,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_faces = torch.ones([3, face_width, face_width * 4], requires_grad=True)
         cubic_img = e2c(
-            equi_img, face_w=face_width, mode="bilinear", cube_format="horizon"
+            test_faces, face_w=face_width, mode="bilinear", cube_format="horizon"
         )
         self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         self.assertTrue(cubic_img.requires_grad)
@@ -426,7 +430,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         self.assertTrue(cubic_img.requires_grad)
 
-    def test_c2e_then_e2c_stack_nohw_grad(self) -> None:
+    def test_c2e_stack_nohw_grad(self) -> None:
         face_width = 512
         test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
         equi_img = c2e(
@@ -435,7 +439,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
-        self.assertTrue(cubic_img.requires_grad)
+        self.assertTrue(equi_img.requires_grad)
 
     def test_c2e_list_horizon_nohw_grad(self) -> None:
         face_width = 512
@@ -451,11 +455,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_c2e_py360convert(self) -> None:
         try:
-            import py360comvert as p360
+            import py360convert as p360
         except:
-            raise unittest.SkipTest(
-                "py360convert no installed, skipping c2e test"
-            )
+            raise unittest.SkipTest("py360convert no installed, skipping c2e test")
 
         face_width = 512
         test_faces = _create_test_faces(face_width, face_width)
@@ -467,7 +469,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             mode="bilinear",
             cube_format="list",
         )
-        test_faces_np = [t.permute(1, 2, 0).numpy() t in test_faces]
+        test_faces_np = [t.permute(1, 2, 0).numpy() for t in test_faces]
 
         equi_img_np = p360.c2e(
             test_faces_np,
@@ -481,7 +483,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_c2e_then_e2c_py360convert(self) -> None:
         try:
-            import py360comvert as p360
+            import py360convert as p360
         except:
             raise unittest.SkipTest(
                 "py360comvert no installed, skipping c2e and e2c test"
@@ -497,7 +499,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             mode="bilinear",
             cube_format="list",
         )
-        test_faces_np = [t.permute(1, 2, 0).numpy() t in test_faces]
+        test_faces_np = [t.permute(1, 2, 0).numpy() for t in test_faces]
 
         equi_img_np = p360.c2e(
             test_faces_np,
@@ -512,12 +514,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="dice"
         )
-       
+
         cubic_img_np = p360.e2c(
             equi_img_np, face_w=face_width, mode="bilinear", cube_format="dice"
         )
         cubic_img_np_tensor = torch.from_numpy(cubic_img_np).permute(2, 0, 1)
 
         assertTensorAlmostEqual(self, cubic_img, cubic_img_np)
-
-
