@@ -105,6 +105,50 @@ class TestFunctionsBaseTest(unittest.TestCase):
         expected_front = torch.tensor([0.0, 0.0, 0.5])
         torch.testing.assert_close(front_center, expected_front, rtol=0.17, atol=0.17)
 
+    def test_cube_h2list(self) -> None:
+        # Create a mock tensor with a shape [w, w*6, C]
+        w = 3  # width of the cube face
+        C = 2  # number of channels (e.g., RGB)
+        cube_h = torch.randn(w, w*6, C)  # Random tensor with dimensions [3, 18, 2]
+
+        # Call the function
+        result = cube_h2list(cube_h)
+
+        # Assert that the result is a list of 6 tensors (one for each face)
+        self.assertEqual(len(result), 6)
+        
+        # Assert each tensor has the correct shape [w, w, C]
+        for tensor in result:
+            self.assertEqual(tensor.shape, (w, w, C))
+            
+        # Ensure the shapes are sliced correctly
+        for i in range(6):
+            self.assertTrue(torch.equal(result[i], cube_h[:, i * w: (i + 1) * w, :]))
+
+    def test_cube_h2dict(self) -> None:
+        # Create a mock tensor with a shape [w, w*6, C]
+        w = 3  # width of the cube face
+        C = 2  # number of channels (e.g., RGB)
+        cube_h = torch.randn(w, w*6, C)  # Random tensor with dimensions [3, 18, 2]
+        face_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
+
+        # Call the function
+        result = cube_h2dict(cube_h, face_keys)
+
+        # Assert that the result is a dictionary with 6 entries
+        self.assertEqual(len(result), 6)
+
+        # Assert that the dictionary keys are correct
+        self.assertEqual(list(result.keys()), face_keys)
+
+        # Assert each tensor has the correct shape [w, w, C]
+        for face in face_keys:
+            self.assertEqual(result[face].shape, (w, w, C))
+        
+        # Check that the values correspond to the expected slices of the input tensor
+        for i, face in enumerate(face_keys):
+            self.assertTrue(torch.equal(result[face], cube_h[:, i * w: (i + 1) * w, :]))
+
     def test_equirect_uvgrid(self) -> None:
         h, w = 8, 16
         result = equirect_uvgrid(h, w)
