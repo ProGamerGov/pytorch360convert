@@ -500,12 +500,44 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
         self.assertTrue(equi_img.requires_grad)
 
+    
+    def test_sample_cubefaces_py360convert(self) -> None:
+        try:
+            import py360convert as p360
+        except:
+            raise unittest.SkipTest(
+                "py360convert not installed, skipping sample_cubefaces test"
+            )
+        # Face type tensor (which face to sample)
+        tp = torch.tensor([[0, 1], [2, 3]], dtype=torch.float32)  # Random face types
+
+        # Coordinates for sampling
+        coor_y = torch.tensor(
+            [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float32
+        )  # y-coordinates
+        coor_x = torch.tensor(
+            [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float32
+        )  # x-coordinates
+
+        order = 1  # Bilinear interpolation
+
+        # Call sample_cubefaces
+        output = sample_cubefaces(torch.ones(6, 8, 8, 3), tp, coor_y, coor_x, order)
+        output_np = p360.sample_cubefaces(
+            torch.ones(6, 8, 8).numpy(),
+            tp.numpy(),
+            coor_y.numpy(),
+            coor_x.numpy(),
+            order,
+        )
+        self.assertEqual(output.sum(), output_np.sum() * 3)
+
     def test_c2e_py360convert(self) -> None:
         try:
             import numpy as np
             import py360convert as p360
         except:
-            raise unittest.SkipTest("py360convert no installed, skipping c2e test")
+            raise unittest.SkipTest("py360convert not installed, skipping c2e test")
 
         face_width = 512
         test_faces = _create_test_faces(face_width, face_width)
@@ -535,7 +567,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             import py360convert as p360
         except:
             raise unittest.SkipTest(
-                "py360convert no installed, skipping c2e and e2c test"
+                "py360convert not installed, skipping c2e and e2c test"
             )
 
         face_width = 512
