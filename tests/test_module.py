@@ -219,6 +219,39 @@ class TestFunctionsBaseTest(unittest.TestCase):
             atol=0.5,
         )
 
+    def test_grid_sample_wrap_cpu_float16(self) -> None:
+        # Create test image
+        h, w = 4, 8
+        channels = 3
+        image = torch.arange(h * w * channels, dtype=torch.float16)
+        image = image.reshape(h, w, channels)
+
+        # Test basic sampling
+        coor_x = torch.tensor([[1.5, 2.5], [3.5, 4.5]], dtype=torch.float16)
+        coor_y = torch.tensor([[1.5, 1.5], [2.5, 2.5]], dtype=torch.float16)
+
+        # Test both interpolation modes
+        result_bilinear = grid_sample_wrap(image, coor_x, coor_y, mode="bilinear")
+        self.assertEqual(result_bilinear.dtype, torch.float16)
+
+    def test_sample_cubefaces_cpu_float16(self) -> None:
+        # Face type tensor (which face to sample)
+        tp = torch.tensor([[0, 1], [2, 3]], dtype=torch.float16)  # Random face types
+
+        # Coordinates for sampling
+        coor_y = torch.tensor(
+            [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float16
+        )  # y-coordinates
+        coor_x = torch.tensor(
+            [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float16
+        )  # x-coordinates
+
+        order = 1  # Bilinear interpolation
+
+        # Call sample_cubefaces
+        output = sample_cubefaces(torch.ones([6, 8, 8, 3], dtype=torch.float16), tp, coor_y, coor_x, order)
+        self.assertEqual(output.dtype, tp.dtype)
+
     def test_sample_cubefaces(self) -> None:
         # Face type tensor (which face to sample)
         tp = torch.tensor([[0, 1], [2, 3]], dtype=torch.float32)  # Random face types
@@ -456,3 +489,21 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img_np_tensor = torch.from_numpy(cubic_img_np).permute(2, 0, 1).float()
 
         assertTensorAlmostEqual(self, cubic_img, cubic_img_np_tensor)
+
+    def test_e2c_horizon_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="horizon"
+        )
+        self.assertEqual(list(cubic_img.shape), [3, face_width, face_width*6])
+        self.assertTrue(cubic_img.requires_grad)
+
+    def test_e2c_dice_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="dice"
+        )
+        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width*4])
+        self.assertTrue(cubic_img.requires_grad)
