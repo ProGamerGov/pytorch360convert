@@ -500,7 +500,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
         self.assertTrue(equi_img.requires_grad)
 
-    
     def test_sample_cubefaces_py360convert(self) -> None:
         try:
             import py360convert as p360
