@@ -254,3 +254,135 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         self.assertTrue(cubic_img.is_cuda)
         assertTensorAlmostEqual(self, cubic_img, test_faces)
+
+    def test_c2e_stack_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        self.assertTrue(equi_img.requires_grad)
+
+    def test_e2c_stack_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
+        self.assertTrue(cubic_img.requires_grad)
+
+    def test_c2e_then_e2c_stack_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
+        self.assertTrue(cubic_img.requires_grad)
+
+    def test_c2e_list_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces = [test_faces[i] for i in range(test_faces.shape[0])]
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        self.assertTrue(equi_img.requires_grad)
+
+    def test_e2c_list_grad(self) -> None:
+        face_width = 512
+        equi_img = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="list"
+        )
+        for i in range(6):
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+        for i in range(6):
+            self.assertTrue(cubic_img[i].requires_grad)
+
+    def test_c2e_then_e2c_list_grad(self) -> None:
+        face_width = 512
+        test_faces_tensors = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces = {k: test_faces_tensors[i] for i, k in zip(range(6), dict_keys)}
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        for i in range(6):
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+        for i in range(6):
+            self.assertTrue(cubic_img[i].requires_grad)
+
+    def test_c2e_dict_grad(self) -> None:
+        dict_keys =  ["Front", "Right", "Back", "Left", "Up", "Down"]
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces = [test_faces[i] for i in range(test_faces.shape[0])]
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="dict",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        self.assertTrue(equi_img.requires_grad)
+
+    def test_e2c_dict_grad(self) -> None:
+        dict_keys =  ["Front", "Right", "Back", "Left", "Up", "Down"]
+        face_width = 512
+        equi_img = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="dict"
+        )
+        for i in dict_keys:
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+        for i in dict_keys:
+            self.assertTrue(cubic_img[i].requires_grad)
+
+    def test_c2e_then_e2c_dict_grad(self) -> None:
+        dict_keys =  ["Front", "Right", "Back", "Left", "Up", "Down"]
+        face_width = 512
+        test_faces_tensors = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        test_faces = {k: test_faces_tensors[i] for i, k in zip(range(6), dict_keys)}
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="dict"
+        )
+        for i in dict_keys:
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+        for i in dict_keys:
+            self.assertTrue(cubic_img[i].requires_grad)
