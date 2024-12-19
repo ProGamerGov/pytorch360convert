@@ -116,6 +116,8 @@ def equirect_facetype(
         w (int): Width of the grid.
         device (torch.device, optional): Device to create tensor on. Defaults
             to torch.device('cpu').
+        dtype (torch.dtype, optional): Data type of the tensor. Defaults to
+            torch.float32.
 
     Returns:
         torch.Tensor: Face type tensor of shape (h, w) with integer face
