@@ -16,6 +16,7 @@ from pytorch360convert.pytorch360convert import (
     cube_h2list,
     cube_list2h,
     e2c,
+    e2p,
     equirect_facetype,
     equirect_uvgrid,
     grid_sample_wrap,
@@ -25,6 +26,7 @@ from pytorch360convert.pytorch360convert import (
     uv2unitxyz,
     xyz2uv,
     xyzcube,
+    xyzpers,
 )
 
 
