@@ -103,7 +103,10 @@ def equirect_uvgrid(
 
 
 def equirect_facetype(
-    h: int, w: int, device: torch.device = torch.device("cpu")
+    h: int,
+    w: int,
+    device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
     """
     Determine face types for equirectangular projection.
@@ -113,6 +116,8 @@ def equirect_facetype(
         w (int): Width of the grid.
         device (torch.device, optional): Device to create tensor on. Defaults
             to torch.device('cpu').
+        dtype (torch.dtype, optional): Data type of the tensor. Defaults to
+            torch.float32.
 
     Returns:
         torch.Tensor: Face type tensor of shape (h, w) with integer face
@@ -176,8 +181,12 @@ def xyzpers(
     out = torch.ones((*out_hw, 3), dtype=dtype, device=device)
     x_max = torch.tan(h_fov / 2)
     y_max = torch.tan(v_fov / 2)
-    y_range = torch.linspace(-y_max, y_max, steps=out_hw[0], dtype=dtype, device=device)
-    x_range = torch.linspace(-x_max, x_max, steps=out_hw[1], dtype=dtype, device=device)
+    y_range = torch.linspace(
+        -y_max.item(), y_max.item(), steps=out_hw[0], dtype=dtype, device=device
+    )
+    x_range = torch.linspace(
+        -x_max.item(), x_max.item(), steps=out_hw[1], dtype=dtype, device=device
+    )
     grid_y, grid_x = torch.meshgrid(-y_range, x_range)
     out[..., 0] = grid_x
     out[..., 1] = grid_y
@@ -552,7 +561,6 @@ def c2e(
     w: Optional[int] = None,
     mode: str = "bilinear",
     cube_format: str = "dice",
-    device: torch.device = torch.device("cpu"),
     channels_first: bool = True,
 ) -> torch.Tensor:
     """
@@ -579,8 +587,6 @@ def c2e(
                 (Dict[str, torch.Tensor]).
             - 'dice': A cubemap in a 'dice' layout (torch.Tensor).
             - 'horizon': A cubemap in a 'horizon' layout (torch.Tensor).
-        device (torch.device, optional): Device to create tensor on. Defaults
-            to torch.device('cpu').
         channels_first (bool, optional): The channel format of e_img. Defaults
             to 'True' for channels first.
 
@@ -629,25 +635,30 @@ def c2e(
         raise NotImplementedError("unknown cube_format and cubemap type")
     assert isinstance(cube_h, torch.Tensor)  # Mypy wants this
 
+    device = cube_h.device
+    dtype = cube_h.dtype
     face_w = cube_h.shape[0]
     assert cube_h.shape[1] == face_w * 6
 
-    h = face_w * 2 if not h else h
+    if cube_format == "horizon" and not h:
+        h = face_w if not h else h
+    else:
+        h = face_w * 2 if not h else h
     w = face_w * 4 if not w else w
 
     assert w % 8 == 0
 
-    uv = equirect_uvgrid(h, w, device=device)
+    uv = equirect_uvgrid(h, w, device=device, dtype=dtype)
     u, v = uv[..., 0], uv[..., 1]
 
     cube_faces = torch.stack(
         torch.split(cube_h, face_w, dim=1), dim=0
     )  # [6, face_w, face_w,C]
 
-    tp = equirect_facetype(h, w, device=device)
+    tp = equirect_facetype(h, w, device=device, dtype=dtype)
 
-    coor_x = torch.zeros((h, w), device=device)
-    coor_y = torch.zeros((h, w), device=device)
+    coor_x = torch.zeros((h, w), device=device, dtype=dtype)
+    coor_y = torch.zeros((h, w), device=device, dtype=dtype)
 
     # front, right, back, left
     for i in range(4):
@@ -670,15 +681,7 @@ def c2e(
     coor_x = (torch.clamp(coor_x, -0.5, 0.5) + 0.5) * face_w
     coor_y = (torch.clamp(coor_y, -0.5, 0.5) + 0.5) * face_w
 
-    C = cube_faces.shape[-1]
-    # sample each channel:
-    equirec_channels = []
-    for i in range(C):
-        face_chan = cube_faces[..., i]  # [6, face_w, face_w]
-        # add channel dimension and sample from cube_faces:
-        sampled = sample_cubefaces(cube_faces, tp, coor_y, coor_x, order)[:, :, i]
-        equirec_channels.append(sampled)
-    equirec = torch.stack(equirec_channels, dim=-1)
+    equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, order)
 
     # Convert back to CHW if required
     equirec = equirec.permute(2, 0, 1) if channels_first else equirec
