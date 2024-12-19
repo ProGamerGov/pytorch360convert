@@ -681,7 +681,7 @@ def c2e(
     for i in range(C):
         face_chan = cube_faces[..., i]  # [6, face_w, face_w]
         # add channel dimension and sample from cube_faces:
-        sampled = sample_cubefaces(cube_faces, tp, coor_y, coor_x, order)[:, :, i]
+        sampled = sample_cubefaces(face_chan, tp, coor_y, coor_x, order)[:, :, i]
         equirec_channels.append(sampled)
     equirec = torch.stack(equirec_channels, dim=-1)
 
