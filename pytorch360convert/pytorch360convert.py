@@ -181,8 +181,12 @@ def xyzpers(
     out = torch.ones((*out_hw, 3), dtype=dtype, device=device)
     x_max = torch.tan(h_fov / 2)
     y_max = torch.tan(v_fov / 2)
-    y_range = torch.linspace(-y_max.item(), y_max.item(), steps=out_hw[0], dtype=dtype, device=device)
-    x_range = torch.linspace(-x_max.item(), x_max.item(), steps=out_hw[1], dtype=dtype, device=device)
+    y_range = torch.linspace(
+        -y_max.item(), y_max.item(), steps=out_hw[0], dtype=dtype, device=device
+    )
+    x_range = torch.linspace(
+        -x_max.item(), x_max.item(), steps=out_hw[1], dtype=dtype, device=device
+    )
     grid_y, grid_x = torch.meshgrid(-y_range, x_range)
     out[..., 0] = grid_x
     out[..., 1] = grid_y
