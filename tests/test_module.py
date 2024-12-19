@@ -425,3 +425,14 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
         self.assertTrue(cubic_img.requires_grad)
+
+    def test_c2e_then_e2c_stack_nohw_grad(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], requires_grad=True)
+        equi_img = c2e(
+            test_faces,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        self.assertTrue(cubic_img.requires_grad)
