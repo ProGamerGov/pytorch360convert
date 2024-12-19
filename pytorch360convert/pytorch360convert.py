@@ -675,7 +675,7 @@ def c2e(
     coor_x = (torch.clamp(coor_x, -0.5, 0.5) + 0.5) * face_w
     coor_y = (torch.clamp(coor_y, -0.5, 0.5) + 0.5) * face_w
 
-    equirec = sample_cubefaces(face_chan, tp, coor_y, coor_x, order)
+    equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, order)
 
     # Convert back to CHW if required
     equirec = equirec.permute(2, 0, 1) if channels_first else equirec
