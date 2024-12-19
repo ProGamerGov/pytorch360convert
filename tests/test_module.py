@@ -449,3 +449,75 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(equi_img.shape), [3, face_width, face_width * 4])
         self.assertTrue(equi_img.requires_grad)
 
+    def test_c2e_py360convert(self) -> None:
+        try:
+            import py360comvert as p360
+        except:
+            raise unittest.SkipTest(
+                "py360convert no installed, skipping c2e test"
+            )
+
+        face_width = 512
+        test_faces = _create_test_faces(face_width, face_width)
+        test_faces = [test_faces[i] for i in range(test_faces.shape[0])]
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        test_faces_np = [t.permute(1, 2, 0).numpy() t in test_faces]
+
+        equi_img_np = p360.c2e(
+            test_faces_np,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        equi_img_np_tensor = torch.from_numpy(equi_img_np).permute(2, 0, 1)
+        assertTensorAlmostEqual(self, equi_img, equi_img_np_tensor)
+
+    def test_c2e_then_e2c_py360convert(self) -> None:
+        try:
+            import py360comvert as p360
+        except:
+            raise unittest.SkipTest(
+                "py360comvert no installed, skipping c2e and e2c test"
+            )
+
+        face_width = 512
+        test_faces = _create_test_faces(face_width, face_width)
+        test_faces = [test_faces[i] for i in range(test_faces.shape[0])]
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        test_faces_np = [t.permute(1, 2, 0).numpy() t in test_faces]
+
+        equi_img_np = p360.c2e(
+            test_faces_np,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="list",
+        )
+        equi_img_np_tensor = torch.from_numpy(equi_img_np).permute(2, 0, 1)
+        assertTensorAlmostEqual(self, equi_img, equi_img_np_tensor)
+
+        cubic_img = e2c(
+            equi_img, face_w=face_width, mode="bilinear", cube_format="dice"
+        )
+       
+        cubic_img_np = p360.e2c(
+            equi_img_np, face_w=face_width, mode="bilinear", cube_format="dice"
+        )
+        cubic_img_np_tensor = torch.from_numpy(cubic_img_np).permute(2, 0, 1)
+
+        assertTensorAlmostEqual(self, cubic_img, cubic_img_np)
+
+
