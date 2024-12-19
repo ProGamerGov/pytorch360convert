@@ -9,6 +9,12 @@ import torch
 from pytorch360convert.pytorch360convert import (
     c2e,
     coor2uv,
+    cube_dice2h,
+    cube_dict2h,
+    cube_h2dice,
+    cube_h2dict,
+    cube_h2list,
+    cube_list2h,
     e2c,
     equirect_facetype,
     equirect_uvgrid,
@@ -109,27 +115,27 @@ class TestFunctionsBaseTest(unittest.TestCase):
         # Create a mock tensor with a shape [w, w*6, C]
         w = 3  # width of the cube face
         C = 2  # number of channels (e.g., RGB)
-        cube_h = torch.randn(w, w*6, C)  # Random tensor with dimensions [3, 18, 2]
+        cube_h = torch.randn(w, w * 6, C)  # Random tensor with dimensions [3, 18, 2]
 
         # Call the function
         result = cube_h2list(cube_h)
 
         # Assert that the result is a list of 6 tensors (one for each face)
         self.assertEqual(len(result), 6)
-        
+
         # Assert each tensor has the correct shape [w, w, C]
         for tensor in result:
             self.assertEqual(tensor.shape, (w, w, C))
-            
+
         # Ensure the shapes are sliced correctly
         for i in range(6):
-            self.assertTrue(torch.equal(result[i], cube_h[:, i * w: (i + 1) * w, :]))
+            self.assertTrue(torch.equal(result[i], cube_h[:, i * w : (i + 1) * w, :]))
 
     def test_cube_h2dict(self) -> None:
         # Create a mock tensor with a shape [w, w*6, C]
         w = 3  # width of the cube face
         C = 2  # number of channels (e.g., RGB)
-        cube_h = torch.randn(w, w*6, C)  # Random tensor with dimensions [3, 18, 2]
+        cube_h = torch.randn(w, w * 6, C)  # Random tensor with dimensions [3, 18, 2]
         face_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
 
         # Call the function
@@ -144,10 +150,12 @@ class TestFunctionsBaseTest(unittest.TestCase):
         # Assert each tensor has the correct shape [w, w, C]
         for face in face_keys:
             self.assertEqual(result[face].shape, (w, w, C))
-        
+
         # Check that the values correspond to the expected slices of the input tensor
         for i, face in enumerate(face_keys):
-            self.assertTrue(torch.equal(result[face], cube_h[:, i * w: (i + 1) * w, :]))
+            self.assertTrue(
+                torch.equal(result[face], cube_h[:, i * w : (i + 1) * w, :])
+            )
 
     def test_equirect_uvgrid(self) -> None:
         h, w = 8, 16
@@ -293,7 +301,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
         order = 1  # Bilinear interpolation
 
         # Call sample_cubefaces
-        output = sample_cubefaces(torch.ones([6, 8, 8, 3], dtype=torch.float16), tp, coor_y, coor_x, order)
+        output = sample_cubefaces(
+            torch.ones([6, 8, 8, 3], dtype=torch.float16), tp, coor_y, coor_x, order
+        )
         self.assertEqual(output.dtype, tp.dtype)
 
     def test_sample_cubefaces(self) -> None:
@@ -540,7 +550,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="horizon"
         )
-        self.assertEqual(list(cubic_img.shape), [3, face_width, face_width*6])
+        self.assertEqual(list(cubic_img.shape), [3, face_width, face_width * 6])
         self.assertTrue(cubic_img.requires_grad)
 
     def test_e2c_dice_grad(self) -> None:
@@ -549,5 +559,5 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="dice"
         )
-        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width*4])
+        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width * 4])
         self.assertTrue(cubic_img.requires_grad)
