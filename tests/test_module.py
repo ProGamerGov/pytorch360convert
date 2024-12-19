@@ -10,6 +10,7 @@ from pytorch360convert.pytorch360convert import (
     c2e,
     coor2uv,
     e2c,
+    sample_cubefaces,
     equirect_facetype,
     equirect_uvgrid,
     grid_sample_wrap,
@@ -218,7 +219,21 @@ class TestFunctionsBaseTest(unittest.TestCase):
             atol=0.5,
         )
 
-    def test_c2e_then_e2c(self) -> None:
+def test_sample_cubefaces(self) -> None:
+    # Face type tensor (which face to sample)
+    tp = torch.tensor([[0, 1], [2, 3]], dtype=torch.float32)  # Random face types
+    
+    # Coordinates for sampling
+    coor_y = torch.tensor([[0.0, 1.0], [0.0, 1.0]], dtype=torch.float32)  # y-coordinates
+    coor_x = torch.tensor([[0.0, 1.0], [0.0, 1.0]], dtype=torch.float32)  # x-coordinates
+
+    order = 1  # Bilinear interpolation
+
+    # Call sample_cubefaces
+    output = sample_cubefaces(torch.ones(6, 8, 8, 3), tp, coor_y, coor_x, order)
+	self.assertEqual(output.sum().item(), 12.0)
+
+def test_c2e_then_e2c(self) -> None:
         face_width = 512
         test_faces = _create_test_faces(face_width, face_width)
         equi_img = c2e(
