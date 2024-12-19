@@ -603,3 +603,50 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width * 4])
         self.assertTrue(cubic_img.requires_grad)
+
+    def test_e2p(self) -> None:
+        # Create a simple test equirectangular image
+        h, w = 64, 128
+        channels = 3
+        e_img = torch.zeros((channels, h, w))
+        # Add some recognizable pattern
+        e_img[0, :, :] = torch.linspace(0, 1, w).repeat(
+            h, 1
+        )  # Red gradient horizontally
+        e_img[1, :, :] = (
+            torch.linspace(0, 1, h).unsqueeze(1).repeat(1, w)
+        )  # Green gradient vertically
+
+        # Test basic perspective projection
+        fov_deg = 90.0
+        u_deg = 0.0
+        v_deg = 0.0
+        out_hw = (32, 32)
+
+        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+
+        # Check output shape
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+
+        # Test with different FOV
+        narrow_fov = e2p(e_img, 45.0, u_deg, v_deg, out_hw)
+        wide_fov = e2p(e_img, 120.0, u_deg, v_deg, out_hw)
+
+        # Narrow FOV should have less variation in values than wide FOV
+        self.assertTrue(torch.std(narrow_fov) < torch.std(wide_fov))
+
+        # Test with rotation
+        rotated = e2p(e_img, fov_deg, 90.0, v_deg, out_hw)  # 90 degrees right
+
+        # Test with different output sizes
+        large_output = e2p(e_img, fov_deg, u_deg, v_deg, (64, 64))
+        self.assertEqual(list(large_output.shape), [channels, 64, 64])
+
+        # Test with rectangular output
+        rect_output = e2p(e_img, fov_deg, u_deg, v_deg, (32, 64))
+        self.assertEqual(list(rect_output.shape), [channels, 32, 64])
+
+        # Test with different FOV for height and width
+        fov_hw = (90.0, 60.0)
+        diff_fov = e2p(e_img, fov_hw, u_deg, v_deg, out_hw)
+        self.assertEqual(list(diff_fov.shape), [channels, out_hw[0], out_hw[1]])
