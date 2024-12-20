@@ -254,7 +254,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         if not torch.cuda.is_available():
             raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
         h, w = 8, 16
-        result = equirect_facetype(h, w, device=torch.device('cuda'))
+        result = equirect_facetype(h, w, device=torch.device("cuda"))
 
         # Check shape
         self.assertEqual(result.shape, (h, w))
@@ -262,7 +262,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
         # Check face type range (0-5 for 6 faces)
         self.assertTrue(torch.all(result >= 0))
         self.assertTrue(torch.all(result <= 5))
-
 
         # Check sum
         self.assertEqual(result.sum().item(), 384.0)
@@ -900,7 +899,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
     def test_c2e_stack_1channel(self) -> None:
         channels = 1
         face_width = 512
-        test_faces = torch.ones([6, channels, face_width, face_width], dtype=torch.float64)
+        test_faces = torch.ones(
+            [6, channels, face_width, face_width], dtype=torch.float64
+        )
         equi_img = c2e(
             test_faces,
             face_width * 2,
@@ -908,12 +909,16 @@ class TestFunctionsBaseTest(unittest.TestCase):
             mode="bilinear",
             cube_format="stack",
         )
-        self.assertEqual(list(equi_img.shape), [channels, face_width * 2, face_width * 4])
+        self.assertEqual(
+            list(equi_img.shape), [channels, face_width * 2, face_width * 4]
+        )
 
     def test_c2e_stack_4channels(self) -> None:
         channels = 4
         face_width = 512
-        test_faces = torch.ones([6, channels, face_width, face_width], dtype=torch.float64)
+        test_faces = torch.ones(
+            [6, channels, face_width, face_width], dtype=torch.float64
+        )
         equi_img = c2e(
             test_faces,
             face_width * 2,
@@ -921,14 +926,14 @@ class TestFunctionsBaseTest(unittest.TestCase):
             mode="bilinear",
             cube_format="stack",
         )
-        self.assertEqual(list(equi_img.shape), [channels, face_width * 2, face_width * 4])
+        self.assertEqual(
+            list(equi_img.shape), [channels, face_width * 2, face_width * 4]
+        )
 
     def test_e2c_stack_1channel(self) -> None:
         channels = 1
         face_width = 512
-        test_faces = torch.ones(
-            [channels, face_width * 2, face_width * 4]
-        )
+        test_faces = torch.ones([channels, face_width * 2, face_width * 4])
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
@@ -937,9 +942,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
     def test_e2c_stack_4channels(self) -> None:
         channels = 4
         face_width = 512
-        test_faces = torch.ones(
-            [channels, face_width * 2, face_width * 4]
-        )
+        test_faces = torch.ones([channels, face_width * 2, face_width * 4])
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
