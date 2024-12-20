@@ -285,6 +285,7 @@ def grid_sample_wrap(
     coor_x: torch.Tensor,
     coor_y: torch.Tensor,
     mode: str = "bilinear",
+    padding_mode: str = "border",
 ) -> torch.Tensor:
     """
     Sample from an image with wrapped horizontal coordinates.
@@ -295,11 +296,13 @@ def grid_sample_wrap(
         coor_y (torch.Tensor): Y coordinates for sampling.
         mode (str, optional): Sampling interpolation mode, 'nearest' or
             'bilinear'. Defaults to 'bilinear'.
+        padding_mode (str, optional): Sampling interpolation mode.
+            Default: 'bilinear'
 
     Returns:
         torch.Tensor: Sampled image tensor.
     """
-    H, W, C = image.shape
+    H, W, _ = image.shape  # H, W, C
 
     # coor_x, coor_y: [H_out, W_out]
     # We must create a grid for F.grid_sample:
@@ -329,12 +332,12 @@ def grid_sample_wrap(
             img_t.float(),
             grid.float(),
             mode=mode,
-            padding_mode="border",
+            padding_mode=padding_mode,
             align_corners=True,
         ).half()
     else:
         sampled = F.grid_sample(
-            img_t, grid, mode=mode, padding_mode="border", align_corners=True
+            img_t, grid, mode=mode, padding_mode=padding_mode, align_corners=True
         )
 
     # [1,C,H_out,W_out]
