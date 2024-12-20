@@ -193,7 +193,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertTrue(torch.all(result >= 0))
         self.assertTrue(torch.all(result <= 5))
 
-
         # Check sum
         self.assertEqual(result.sum().item(), 384.0)
 
