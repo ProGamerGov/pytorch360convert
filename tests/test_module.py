@@ -708,7 +708,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_e2c_stack_float16(self) -> None:
         face_width = 512
-        test_faces = torch.ones([3, face_width * 2, face_width * 4], dtype=torch.float16)
+        test_faces = torch.ones(
+            [3, face_width * 2, face_width * 4], dtype=torch.float16
+        )
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
@@ -717,7 +719,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_e2c_stack_float64(self) -> None:
         face_width = 512
-        test_faces = torch.ones([3, face_width * 2, face_width * 4], dtype=torch.float64)
+        test_faces = torch.ones(
+            [3, face_width * 2, face_width * 4], dtype=torch.float64
+        )
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
@@ -751,6 +755,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(equi_img.dtype, torch.float64)
 
     def test_e2p_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
         # Create a simple test equirectangular image
         h, w = 64, 128
         channels = 3
