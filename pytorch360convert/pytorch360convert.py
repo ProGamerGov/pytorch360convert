@@ -133,7 +133,7 @@ def equirect_facetype(
 
     # Prepare ceil mask
     mask = torch.zeros((h, w // 4), dtype=torch.bool, device=device)
-    idx = torch.linspace(-torch.pi, torch.pi, w // 4, device=device) / 4
+    idx = torch.linspace(-torch.pi, torch.pi, w // 4, device=device, dtype=dtype) / 4
     idx = torch.round(h / 2 - torch.atan(torch.cos(idx)) * h / torch.pi).to(torch.long)
     for i, j in enumerate(idx):
         mask[:j, i] = True
