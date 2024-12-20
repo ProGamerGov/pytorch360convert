@@ -896,3 +896,79 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertEqual(result.dtype, torch.float64)
+
+    def test_c2e_stack_1channel(self) -> None:
+        channels = 1
+        face_width = 512
+        test_faces = torch.ones([6, channels, face_width, face_width], dtype=torch.float64)
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [channels, face_width * 2, face_width * 4])
+
+    def test_c2e_stack_4channels(self) -> None:
+        channels = 4
+        face_width = 512
+        test_faces = torch.ones([6, channels, face_width, face_width], dtype=torch.float64)
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [channels, face_width * 2, face_width * 4])
+
+    def test_e2c_stack_1channel(self) -> None:
+        channels = 1
+        face_width = 512
+        test_faces = torch.ones(
+            [channels, face_width * 2, face_width * 4]
+        )
+        cubic_img = e2c(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])
+
+    def test_e2c_stack_4channels(self) -> None:
+        channels = 4
+        face_width = 512
+        test_faces = torch.ones(
+            [channels, face_width * 2, face_width * 4]
+        )
+        cubic_img = e2c(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])
+
+    def test_e2p_1channel(self) -> None:
+        h, w = 64, 128
+        channels = 1
+        e_img = torch.zeros((channels, h, w))
+
+        fov_deg = 90.0
+        u_deg = 0.0
+        v_deg = 0.0
+        out_hw = (32, 32)
+
+        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+
+    def test_e2p_4channels(self) -> None:
+        h, w = 64, 128
+        channels = 4
+        e_img = torch.zeros((channels, h, w))
+
+        fov_deg = 90.0
+        u_deg = 0.0
+        v_deg = 0.0
+        out_hw = (32, 32)
+
+        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
