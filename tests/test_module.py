@@ -193,8 +193,86 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertTrue(torch.all(result >= 0))
         self.assertTrue(torch.all(result <= 5))
 
+
+        # Check sum
+        self.assertEqual(result.sum().item(), 384.0)
+
         # Check dtype
-        self.assertEqual(result.dtype, torch.int32)
+        self.assertEqual(result.dtype, torch.int64)
+
+    def test_equirect_facetype_large(self) -> None:
+        h, w = 512 * 2, 512 * 4
+        result = equirect_facetype(h, w)
+
+        # Check shape
+        self.assertEqual(result.shape, (h, w))
+
+        # Check face type range (0-5 for 6 faces)
+        self.assertTrue(torch.all(result >= 0))
+        self.assertTrue(torch.all(result <= 5))
+
+        # Check sum
+        self.assertEqual(result.sum().item(), 6510864.0)
+
+        # Check dtype
+        self.assertEqual(result.dtype, torch.int64)
+
+    def test_equirect_facetype_float64(self) -> None:
+        h, w = 8, 16
+        result = equirect_facetype(h, w, dtype=torch.float64)
+
+        # Check shape
+        self.assertEqual(result.shape, (h, w))
+
+        # Check face type range (0-5 for 6 faces)
+        self.assertTrue(torch.all(result >= 0))
+        self.assertTrue(torch.all(result <= 5))
+
+        # Check sum
+        self.assertEqual(result.sum().item(), 384.0)
+
+        # Check dtype
+        self.assertEqual(result.dtype, torch.int64)
+
+    def test_equirect_facetype_float16(self) -> None:
+        h, w = 8, 16
+        result = equirect_facetype(h, w, dtype=torch.float16)
+
+        # Check shape
+        self.assertEqual(result.shape, (h, w))
+
+        # Check face type range (0-5 for 6 faces)
+        self.assertTrue(torch.all(result >= 0))
+        self.assertTrue(torch.all(result <= 5))
+
+        # Check sum
+        self.assertEqual(result.sum().item(), 384.0)
+
+        # Check dtype
+        self.assertEqual(result.dtype, torch.int64)
+
+    def test_equirect_facetype_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        h, w = 8, 16
+        result = equirect_facetype(h, w, device=torch.device('cuda'))
+
+        # Check shape
+        self.assertEqual(result.shape, (h, w))
+
+        # Check face type range (0-5 for 6 faces)
+        self.assertTrue(torch.all(result >= 0))
+        self.assertTrue(torch.all(result <= 5))
+
+
+        # Check sum
+        self.assertEqual(result.sum().item(), 384.0)
+
+        # Check dtype
+        self.assertEqual(result.dtype, torch.int64)
+
+        # Check cuda
+        self.assertTrue(result.is_cuda)
 
     def test_xyz2uv_and_uv2unitxyz(self) -> None:
         # Create test points
