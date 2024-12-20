@@ -141,7 +141,7 @@ def equirect_facetype(
 
     tp[mask] = 4
     tp[torch.flip(mask, [0])] = 5
-    return tp.to(torch.int32)
+    return tp
 
 
 def xyzpers(
