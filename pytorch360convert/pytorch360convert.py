@@ -133,15 +133,15 @@ def equirect_facetype(
 
     # Prepare ceil mask
     mask = torch.zeros((h, w // 4), dtype=torch.bool, device=device)
-    idx = torch.linspace(-torch.pi, torch.pi, w // 4, device=device) / 4
-    idx = h // 2 - torch.round(torch.atan(torch.cos(idx)) * h / torch.pi).to(torch.long)
+    idx = torch.linspace(-torch.pi, torch.pi, w // 4, device=device, dtype=dtype) / 4
+    idx = torch.round(h / 2 - torch.atan(torch.cos(idx)) * h / torch.pi).to(torch.long)
     for i, j in enumerate(idx):
         mask[:j, i] = True
     mask = torch.roll(torch.cat([mask] * 4, dim=1), shifts=3 * (w // 8), dims=1)
 
     tp[mask] = 4
     tp[torch.flip(mask, [0])] = 5
-    return tp.to(torch.int32)
+    return tp
 
 
 def xyzpers(
@@ -285,6 +285,7 @@ def grid_sample_wrap(
     coor_x: torch.Tensor,
     coor_y: torch.Tensor,
     mode: str = "bilinear",
+    padding_mode: str = "border",
 ) -> torch.Tensor:
     """
     Sample from an image with wrapped horizontal coordinates.
@@ -295,11 +296,13 @@ def grid_sample_wrap(
         coor_y (torch.Tensor): Y coordinates for sampling.
         mode (str, optional): Sampling interpolation mode, 'nearest' or
             'bilinear'. Defaults to 'bilinear'.
+        padding_mode (str, optional): Sampling interpolation mode.
+            Default: 'bilinear'
 
     Returns:
         torch.Tensor: Sampled image tensor.
     """
-    H, W, C = image.shape
+    H, W, _ = image.shape  # H, W, C
 
     # coor_x, coor_y: [H_out, W_out]
     # We must create a grid for F.grid_sample:
@@ -329,12 +332,12 @@ def grid_sample_wrap(
             img_t.float(),
             grid.float(),
             mode=mode,
-            padding_mode="border",
+            padding_mode=padding_mode,
             align_corners=True,
         ).half()
     else:
         sampled = F.grid_sample(
-            img_t, grid, mode=mode, padding_mode="border", align_corners=True
+            img_t, grid, mode=mode, padding_mode=padding_mode, align_corners=True
         )
 
     # [1,C,H_out,W_out]
