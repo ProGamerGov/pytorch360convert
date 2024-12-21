@@ -152,15 +152,19 @@ from pytorch360convert import e2p
 # Extract perspective view from equirectangular image
 perspective_view = e2p(
     equi_image,                   # Equirectangular image
-    fov_deg=(90, 60),             # Horizontal and vertical FOV
-    u_deg=45,                     # Horizontal rotation
-    v_deg=15,                     # Vertical rotation
-    out_hw=(720, 1280),           # Output image dimensions
+    fov_deg=(70, 60),             # Horizontal and vertical FOV
+    u_deg=260,                    # Horizontal rotation
+    v_deg=50,                     # Vertical rotation
+    out_hw=(512, 768),            # Output image dimensions
     mode='bilinear'               # Sampling interpolation
 )
 
 save_tensor_as_image(perspective_view, "perspective.jpg")
 ```
+
+| Equirectangular Input | Perspective Output |
+| :---: | :----: |
+| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_perspective.jpg) |
 
 
 ## 📚 Basic Functions
