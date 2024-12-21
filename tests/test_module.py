@@ -839,11 +839,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.zeros((channels, h, w)).cuda()
 
         fov_deg = 90.0
-        u_deg = 0.0
-        v_deg = 0.0
+        h_deg = 0.0
+        w_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertTrue(result.is_cuda)
@@ -855,11 +855,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.zeros((channels, h, w), requires_grad=True)
 
         fov_deg = 90.0
-        u_deg = 0.0
-        v_deg = 0.0
+        h_deg = 0.0
+        w_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertTrue(result.requires_grad)
@@ -871,11 +871,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.zeros((channels, h, w), dtype=torch.float16)
 
         fov_deg = 90.0
-        u_deg = 0.0
-        v_deg = 0.0
+        h_deg = 0.0
+        w_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertEqual(result.dtype, torch.float16)
@@ -887,11 +887,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.zeros((channels, h, w), dtype=torch.float64)
 
         fov_deg = 90.0
-        u_deg = 0.0
-        v_deg = 0.0
+        h_deg = 0.0
+        w_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertEqual(result.dtype, torch.float64)
@@ -954,11 +954,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.zeros((channels, h, w))
 
         fov_deg = 90.0
-        u_deg = 0.0
-        v_deg = 0.0
+        h_deg = 0.0
+        w_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
@@ -968,10 +968,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.zeros((channels, h, w))
 
         fov_deg = 90.0
-        u_deg = 0.0
-        v_deg = 0.0
+        h_deg = 0.0
+        w_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, u_deg, v_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
