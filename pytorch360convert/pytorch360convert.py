@@ -767,7 +767,6 @@ def e2c(
     result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]
     if cube_format == "horizon":
         result = out_c
-        result[:, ::face_w, :] = torch.flip(result[:, ::face_w, :], dims=[0, 1])
     elif cube_format == "list" or cube_format == "stack":
         result = cube_h2list(out_c)
     elif cube_format == "dict":
