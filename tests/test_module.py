@@ -376,11 +376,11 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float16
         )  # x-coordinates
 
-        order = 1  # Bilinear interpolation
+        mode = "bilinear"
 
         # Call sample_cubefaces
         output = sample_cubefaces(
-            torch.ones([6, 8, 8, 3], dtype=torch.float16), tp, coor_y, coor_x, order
+            torch.ones([6, 8, 8, 3], dtype=torch.float16), tp, coor_y, coor_x, mode
         )
         self.assertEqual(output.dtype, tp.dtype)
 
@@ -396,10 +396,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float32
         )  # x-coordinates
 
-        order = 1  # Bilinear interpolation
+        mode = "bilinear"
 
         # Call sample_cubefaces
-        output = sample_cubefaces(torch.ones(6, 8, 8, 3), tp, coor_y, coor_x, order)
+        output = sample_cubefaces(torch.ones(6, 8, 8, 3), tp, coor_y, coor_x, mode)
         self.assertEqual(output.sum().item(), 12.0)
 
     def test_c2e_then_e2c(self) -> None:
@@ -594,16 +594,16 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [[0.0, 1.0], [0.0, 1.0]], dtype=torch.float32
         )  # x-coordinates
 
-        order = 1  # Bilinear interpolation
+        mode = "bilinear"
 
         # Call sample_cubefaces
-        output = sample_cubefaces(torch.ones(6, 8, 8, 3), tp, coor_y, coor_x, order)
+        output = sample_cubefaces(torch.ones(6, 8, 8, 3), tp, coor_y, coor_x, mode)
         output_np = p360.sample_cubefaces(
             torch.ones(6, 8, 8).numpy(),
             tp.numpy(),
             coor_y.numpy(),
             coor_x.numpy(),
-            order,
+            mode,
         )
         self.assertEqual(output.sum(), output_np.sum() * 3)
 
