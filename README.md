@@ -176,6 +176,10 @@ Converts an equirectangular image to a cubemap projection.
 
 - **Returns**: Cubemap representation of the input image as a tensor, list of tensors, or dict or tensors.
 
+| Equirectangular Input | Cubemap 'Dice' Output |
+| :---: | :----: |
+| ![](https://github.com/ProGamerGov/pytorch360convert/blob/main/examples/example_world_map_equirectangular.jpg) | ![](https://github.com/github.com/ProGamerGov/pytorch360convert/blob/main/examples/example_world_map_dice_cubemap.jpg) |
+
 ### `c2e(cubemap, h, w, mode='bilinear', cube_format='dice')`
 Converts a cubemap projection to an equirectangular image.
 
