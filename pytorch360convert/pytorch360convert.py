@@ -837,8 +837,6 @@ def e2p(
 
     in_rot = in_rot_deg * torch.pi / 180
 
-    order = 1 if mode == "bilinear" else 0
-
     u = -u_deg * torch.pi / 180
     v = v_deg * torch.pi / 180
     xyz = xyzpers(
