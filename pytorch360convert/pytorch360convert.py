@@ -57,16 +57,16 @@ def xyzcube(
     out[:, 0 * face_w : 1 * face_w, 0:2] = grid
     out[:, 0 * face_w : 1 * face_w, 2] = 0.5
     # Right
-    out[:, 1 * face_w : 2 * face_w, [2, 1]] = grid
+    out[:, 1 * face_w : 2 * face_w, [2, 1]] = torch.flip(grid, [1])
     out[:, 1 * face_w : 2 * face_w, 0] = 0.5
     # Back
-    out[:, 2 * face_w : 3 * face_w, 0:2] = grid
+    out[:, 2 * face_w : 3 * face_w, 0:2] = torch.flip(grid, [1])
     out[:, 2 * face_w : 3 * face_w, 2] = -0.5
     # Left
     out[:, 3 * face_w : 4 * face_w, [2, 1]] = grid
     out[:, 3 * face_w : 4 * face_w, 0] = -0.5
     # Up
-    out[:, 4 * face_w : 5 * face_w, [0, 2]] = grid
+    out[:, 4 * face_w : 5 * face_w, [0, 2]] = torch.flip(grid, [0])
     out[:, 4 * face_w : 5 * face_w, 1] = 0.5
     # Down
     out[:, 5 * face_w : 6 * face_w, [0, 2]] = grid
@@ -97,7 +97,7 @@ def equirect_uvgrid(
     """
     u = torch.linspace(-torch.pi, torch.pi, steps=w, dtype=dtype, device=device)
     v = torch.linspace(torch.pi, -torch.pi, steps=h, dtype=dtype, device=device) / 2
-    grid_v, grid_u = torch.meshgrid(v, u)
+    grid_u, grid_v = torch.meshgrid(u, v)
     uv = torch.stack([grid_u, grid_v], dim=-1)
     return uv
 
@@ -306,7 +306,7 @@ def grid_sample_wrap(
 
     # coor_x, coor_y: [H_out, W_out]
     # We must create a grid for F.grid_sample:
-    # grid_sample expects: input [N, C, H, W], grid [N,H_out, W_out, 2]
+    # grid_sample expects: input [N, C, H, W], grid [N, H_out, W_out, 2]
     # Normalized coords: x: [-1, 1], y: [-1, 1]
     # Handle wrapping horizontally: coor_x modulo W
     coor_x_wrapped = torch.remainder(coor_x, W)  # wrap horizontally
@@ -321,10 +321,10 @@ def grid_sample_wrap(
     img_t = image.permute(2, 0, 1).unsqueeze(0)  # [1,C,H,W]
     grid = grid.unsqueeze(0)  # [1,H_out,W_out,2]
 
-    # grid_sample: note that the code samples using (y,x) order if
+    # grid_sample: note that the code samples using (y, x) order if
     # align_corners=False, we must be careful:
     # grid is defined as grid[:,:,:,0] = x, grid[:,:,:,1] = y,
-    # PyTorch grid_sample expects grid in form (N, H_out, W_out,2),
+    # PyTorch grid_sample expects grid in form (N, H_out, W_out, 2),
     # with grid[:,:,:,0] = x and grid[:,:,:,1] = y
 
     if img_t.dtype == torch.float16 and img_t.device == torch.device("cpu"):
@@ -400,9 +400,9 @@ def sample_cubefaces(
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
     cube_faces_mod = cube_faces.clone()
-    cube_faces_mod[1] = torch.flip(cube_faces_mod[1], dims=[1])
-    cube_faces_mod[2] = torch.flip(cube_faces_mod[2], dims=[1])
-    cube_faces_mod[4] = torch.flip(cube_faces_mod[4], dims=[0])
+    #cube_faces_mod[1] = torch.flip(cube_faces_mod[1], dims=[1])
+    #cube_faces_mod[2] = torch.flip(cube_faces_mod[2], dims=[1])
+    #cube_faces_mod[4] = torch.flip(cube_faces_mod[4], dims=[0])
 
     face_w = cube_faces_mod.shape[1]
     cube_h = torch.cat(
@@ -531,11 +531,11 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_list[i]
-        if i in [1, 2]:
-            face = torch.flip(face, dims=[1])
-        if i == 4:
-            face = torch.flip(face, dims=[0])
-        face = torch.flip(face, dims=[0, 1])
+        #if i in [1, 2]:
+        #    face = torch.flip(face, dims=[1])
+        #if i == 4:
+        #    face = torch.flip(face, dims=[0])
+        #face = torch.flip(face, dims=[0, 1])
         cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w] = face
     return cube_dice
 
@@ -567,12 +567,12 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w]
-        if i in [1, 2]:
-            face = torch.flip(face, dims=[1])
-        if i == 4:
-            face = torch.flip(face, dims=[0])
+        #if i in [1, 2]:
+        #    face = torch.flip(face, dims=[1])
+        #if i == 4:
+        #    face = torch.flip(face, dims=[0])
         cube_h[:, i * w : (i + 1) * w] = face
-        face = torch.flip(face, dims=[0, 1])
+        #face = torch.flip(face, dims=[0, 1])
     return cube_h
 
 
