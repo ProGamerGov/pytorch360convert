@@ -124,13 +124,13 @@ save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 
 ### Cubemap to Equirectangular Conversion
 
-We can also convert cubemaps into equirectangular images, like so. Note that we use the same cubemap we created above and the same cubemap format used to make it.
+We can also convert cubemaps into equirectangular images, like so. Note that we can use the same cubemap we created above as long as we used the same cubemap format.
 
 ```python
 from pytorch360convert import c2e
 
 # Load cubemap in 'dice' format
-equi_image = load_image_to_tensor("cubemap.jpg")
+equi_image = load_image_to_tensor("dice_cubemap.jpg")
 
 # Convert cubemap back to equirectangular
 equirectangular = c2e(
