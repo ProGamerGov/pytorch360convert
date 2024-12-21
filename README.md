@@ -153,8 +153,8 @@ from pytorch360convert import e2p
 perspective_view = e2p(
     equi_image,                   # Equirectangular image
     fov_deg=(70, 60),             # Horizontal and vertical FOV
-    u_deg=260,                    # Horizontal rotation
-    v_deg=50,                     # Vertical rotation
+    h_deg=260,                    # Horizontal rotation
+    w_deg=50,                     # Vertical rotation
     out_hw=(512, 768),            # Output image dimensions
     mode='bilinear'               # Sampling interpolation
 )
@@ -210,8 +210,8 @@ Extracts a perspective view from an equirectangular image.
 - **Parameters**:
   - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
   - `fov_deg` (float or tuple): Field of view in degrees. If using a tuple, adhere to the following format: (h_fov_deg, v_fov_deg)
-  - `u_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
-  - `v_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
+  - `h_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
+  - `w_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
   - `out_hw` (tuple): Output image dimensions in the shape of `(height, width)`.
   - `in_rot_deg` (float, optional): Inplane rotation angle. Default: 0
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear` and `nearest`. Default: `bilinear`
