@@ -455,7 +455,9 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
     """
-    assert all(cube.shape == cube_list[0].shape for cube in cube_list), "All cube faces should have the same shape."
+    assert all(
+        cube.shape == cube_list[0].shape for cube in cube_list
+    ), "All cube faces should have the same shape."
     return torch.cat(cube_list, dim=1)
 
 
@@ -508,9 +510,9 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     Output order: Front Right Back Left Up Down
        ┌────┬────┬────┬────┐
        │    │ U  │    │    │
-       ├────┼────┼────┼────┤ 
+       ├────┼────┼────┼────┤
        │ L  │ F  │ R  │ B  │
-       ├────┼────┼────┼────┤ 
+       ├────┼────┼────┼────┤
        │    │ D  │    │    │
        └────┴────┴────┴────┘
 
@@ -545,9 +547,9 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
     Input order: Front Right Back Left Up Down
        ┌────┬────┬────┬────┐
        │    │ U  │    │    │
-       ├────┼────┼────┼────┤ 
+       ├────┼────┼────┼────┤
        │ L  │ F  │ R  │ B  │
-       ├────┼────┼────┼────┤ 
+       ├────┼────┼────┼────┤
        │    │ D  │    │    │
        └────┴────┴────┴────┘
 
