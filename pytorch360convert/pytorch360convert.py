@@ -458,6 +458,7 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
     """
+    assert all(cube.shape == cube_list[0].shape for cube in cube_list), "All cube faces should have the same shape."
     return torch.cat(cube_list, dim=1)
 
 
