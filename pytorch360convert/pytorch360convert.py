@@ -346,7 +346,7 @@ def grid_sample_wrap(
 
 
 def sample_equirec(
-    e_img: torch.Tensor, coor_xy: torch.Tensor, order: int
+    e_img: torch.Tensor, coor_xy: torch.Tensor, mode: str = "bilinear"
 ) -> torch.Tensor:
     """
     Sample from an equirectangular image.
@@ -355,13 +355,12 @@ def sample_equirec(
         e_img (torch.Tensor): Equirectangular image tensor of shape [H, W, C].
         coor_xy (torch.Tensor): Sampling coordinates of shape
             [H_out, W_out, 2].
-        order (int): Sampling interpolation order (0 for nearest, 1 for
-            bilinear).
+        mode (str, optional): Sampling interpolation mode, 'nearest' or
+            'bilinear'. Defaults to 'bilinear'.
 
     Returns:
         torch.Tensor: Sampled image tensor.
     """
-    mode = "bilinear" if order == 1 else "nearest"
     coor_x = coor_xy[..., 0]
     coor_y = coor_xy[..., 1]
     return grid_sample_wrap(e_img, coor_x, coor_y, mode=mode)
@@ -372,7 +371,7 @@ def sample_cubefaces(
     tp: torch.Tensor,
     coor_y: torch.Tensor,
     coor_x: torch.Tensor,
-    order: int,
+    mode: str = "bilinear",
 ) -> torch.Tensor:
     """
     Sample from cube faces.
@@ -383,13 +382,13 @@ def sample_cubefaces(
         tp (torch.Tensor): Face type tensor.
         coor_y (torch.Tensor): Y coordinates for sampling.
         coor_x (torch.Tensor): X coordinates for sampling.
-        order (int): Sampling interpolation order (0 for nearest,
-            1 for bilinear).
+        mode (str, optional): Sampling interpolation mode, 'nearest' or
+            'bilinear'. Defaults to 'bilinear'.
 
     Returns:
         torch.Tensor: Sampled cube faces tensor.
     """
-    # cube_faces: [6,face_w, face_w, C]
+    # cube_faces: [6, face_w, face_w, C]
     # We must sample according to tp (face index), coor_y, coor_x
     # First we must flatten all faces into a single big image (like cube_h)
     # The original, code tries to do complicated padding and wrapping.
@@ -425,8 +424,6 @@ def sample_cubefaces(
     # But tp might have shape (H_out,W_out)
     global_x = coor_x + tp.float() * face_w
     global_y = coor_y
-
-    mode = "bilinear" if order == 1 else "nearest"
 
     return grid_sample_wrap(cube_h, global_x, global_y, mode=mode)
 
@@ -639,8 +636,6 @@ def c2e(
         else:
             raise NotImplementedError("unknown cube_format and cubemap type")
 
-    order = 1 if mode == "bilinear" else 0
-
     if cube_format == "horizon" and isinstance(cubemap, torch.Tensor):
         assert cubemap.dim() == 3
         cube_h = cubemap
@@ -703,7 +698,7 @@ def c2e(
     coor_x = (torch.clamp(coor_x, -0.5, 0.5) + 0.5) * face_w
     coor_y = (torch.clamp(coor_y, -0.5, 0.5) + 0.5) * face_w
 
-    equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, order)
+    equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, mode)
 
     # Convert back to CHW if required
     equirec = equirec.permute(2, 0, 1) if channels_first else equirec
@@ -759,7 +754,6 @@ def e2c(
     assert len(e_img.shape) == 3
     e_img = e_img.permute(1, 2, 0) if channels_first else e_img
     h, w = e_img.shape[:2]
-    order = 1 if mode == "bilinear" else 0
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
@@ -767,7 +761,7 @@ def e2c(
     uv = xyz2uv(xyz)
     coor_xy = uv2coor(uv, h, w)
     # Sample all channels:
-    out_c = sample_equirec(e_img, coor_xy, order)  # [face_w, 6*face_w, C]
+    out_c = sample_equirec(e_img, coor_xy, mode)  # [face_w, 6*face_w, C]
     # out_c shape: we did it directly for each pixel in the cube map
 
     result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]
