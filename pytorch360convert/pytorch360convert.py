@@ -57,16 +57,16 @@ def xyzcube(
     out[:, 0 * face_w : 1 * face_w, 0:2] = grid
     out[:, 0 * face_w : 1 * face_w, 2] = 0.5
     # Right
-    out[:, 1 * face_w : 2 * face_w, [2, 1]] = grid
+    out[:, 1 * face_w : 2 * face_w, [2, 1]] = torch.flip(grid, [1])
     out[:, 1 * face_w : 2 * face_w, 0] = 0.5
     # Back
-    out[:, 2 * face_w : 3 * face_w, 0:2] = grid
+    out[:, 2 * face_w : 3 * face_w, 0:2] = torch.flip(grid, [1])
     out[:, 2 * face_w : 3 * face_w, 2] = -0.5
     # Left
     out[:, 3 * face_w : 4 * face_w, [2, 1]] = grid
     out[:, 3 * face_w : 4 * face_w, 0] = -0.5
     # Up
-    out[:, 4 * face_w : 5 * face_w, [0, 2]] = grid
+    out[:, 4 * face_w : 5 * face_w, [0, 2]] = torch.flip(grid, [0])
     out[:, 4 * face_w : 5 * face_w, 1] = 0.5
     # Down
     out[:, 5 * face_w : 6 * face_w, [0, 2]] = grid
@@ -400,9 +400,9 @@ def sample_cubefaces(
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
     cube_faces_mod = cube_faces.clone()
-    cube_faces_mod[1] = torch.flip(cube_faces_mod[1], dims=[1])
-    cube_faces_mod[2] = torch.flip(cube_faces_mod[2], dims=[1])
-    cube_faces_mod[4] = torch.flip(cube_faces_mod[4], dims=[0])
+    #cube_faces_mod[1] = torch.flip(cube_faces_mod[1], dims=[1])
+    #cube_faces_mod[2] = torch.flip(cube_faces_mod[2], dims=[1])
+    #cube_faces_mod[4] = torch.flip(cube_faces_mod[4], dims=[0])
 
     face_w = cube_faces_mod.shape[1]
     cube_h = torch.cat(
@@ -529,11 +529,11 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_list[i]
-        if i in [1, 2]:
-            face = torch.flip(face, dims=[1])
-        if i == 4:
-            face = torch.flip(face, dims=[0])
-        face = torch.flip(face, dims=[0, 1])
+        #if i in [1, 2]:
+        #    face = torch.flip(face, dims=[1])
+        #if i == 4:
+        #    face = torch.flip(face, dims=[0])
+        #face = torch.flip(face, dims=[0, 1])
         cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w] = face
     return cube_dice
 
