@@ -852,7 +852,7 @@ def e2p(
     uv = xyz2uv(xyz)
     coor_xy = uv2coor(uv, h, w)
 
-    pers_img = sample_equirec(e_img, coor_xy, order)
+    pers_img = sample_equirec(e_img, coor_xy, mode)
 
     # Convert back to CHW if required
     pers_img = pers_img.permute(2, 0, 1) if channels_first else pers_img
