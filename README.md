@@ -101,9 +101,9 @@ Coverting equirectangular images into cubemaps is easy. For simplicitly, we'll u
 ```python
 from pytorch360convert import e2c
 
-# Load equirectangular image
+# Load equirectangular image (3, 1376, 2752)
 equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
-face_w = equi_image.shape[2] // 4  # 688
+face_w = equi_image.shape[2] // 4  # 2752 / 4 = 688
 
 # Convert to cubemap (dice format)
 cubemap = e2c(
