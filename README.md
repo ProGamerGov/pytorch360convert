@@ -102,19 +102,25 @@ Coverting equirectangular images into cubemaps is easy. For simplicitly, we'll u
 from pytorch360convert import e2c
 
 # Load equirectangular image
-equi_image = load_image_to_tensor("360_panorama.jpg")
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+face_w = equi_image.shape[2] // 4  # 688
 
 # Convert to cubemap (dice format)
 cubemap = e2c(
     equi_image,                   # CHW format
-    face_w=1024,                  # Width of each cube face
+    face_w=face_w,                # Width of each cube face
     mode='bilinear',              # Sampling interpolation
     cube_format='dice'            # Output cubemap layout
 )
 
 # Save cubemap faces
-save_tensor_as_image(cubemap, "cubemap.jpg")
+save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 ```
+
+| Equirectangular Input | Cubemap 'Dice' Output |
+| :---: | :----: |
+| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_dice_cubemap.jpg) |
+
 
 ### Cubemap to Equirectangular Conversion
 
@@ -175,10 +181,6 @@ Converts an equirectangular image to a cubemap projection.
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
 
 - **Returns**: Cubemap representation of the input image as a tensor, list of tensors, or dict or tensors.
-
-| Equirectangular Input | Cubemap 'Dice' Output |
-| :---: | :----: |
-| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_dice_cubemap.jpg) |
 
 ### `c2e(cubemap, h, w, mode='bilinear', cube_format='dice')`
 Converts a cubemap projection to an equirectangular image.
