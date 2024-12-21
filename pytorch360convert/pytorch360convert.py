@@ -507,6 +507,15 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     """
     Convert a horizontal cube representation to a dice layout representation.
 
+    Output order: Front Right Back Left Up Down
+       ┌────┬────┬────┬────┐
+       │    │ U  │    │    │
+       ├────┼────┼────┼────┤ 
+       │ L  │ F  │ R  │ B  │
+       ├────┼────┼────┼────┤ 
+       │    │ D  │    │    │
+       └────┴────┴────┴────┘
+
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor of shape
             [w, w*6, C].
@@ -534,6 +543,15 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
 def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
     """
     Convert a dice layout representation to a horizontal cube representation.
+
+    Input order: Front Right Back Left Up Down
+       ┌────┬────┬────┬────┐
+       │    │ U  │    │    │
+       ├────┼────┼────┼────┤ 
+       │ L  │ F  │ R  │ B  │
+       ├────┼────┼────┼────┤ 
+       │    │ D  │    │    │
+       └────┴────┴────┴────┘
 
     Args:
         cube_dice (torch.Tensor): Dice layout cube representation tensor of shape
