@@ -346,7 +346,7 @@ def grid_sample_wrap(
 
 
 def sample_equirec(
-    e_img: torch.Tensor, coor_xy: torch.Tensor, order: int
+    e_img: torch.Tensor, coor_xy: torch.Tensor, mode: str = "bilinear"
 ) -> torch.Tensor:
     """
     Sample from an equirectangular image.
@@ -355,13 +355,12 @@ def sample_equirec(
         e_img (torch.Tensor): Equirectangular image tensor of shape [H, W, C].
         coor_xy (torch.Tensor): Sampling coordinates of shape
             [H_out, W_out, 2].
-        order (int): Sampling interpolation order (0 for nearest, 1 for
-            bilinear).
+        mode (str, optional): Sampling interpolation mode, 'nearest' or
+            'bilinear'. Defaults to 'bilinear'.
 
     Returns:
         torch.Tensor: Sampled image tensor.
     """
-    mode = "bilinear" if order == 1 else "nearest"
     coor_x = coor_xy[..., 0]
     coor_y = coor_xy[..., 1]
     return grid_sample_wrap(e_img, coor_x, coor_y, mode=mode)
@@ -372,7 +371,7 @@ def sample_cubefaces(
     tp: torch.Tensor,
     coor_y: torch.Tensor,
     coor_x: torch.Tensor,
-    order: int,
+    mode: str = "bilinear",
 ) -> torch.Tensor:
     """
     Sample from cube faces.
@@ -383,13 +382,13 @@ def sample_cubefaces(
         tp (torch.Tensor): Face type tensor.
         coor_y (torch.Tensor): Y coordinates for sampling.
         coor_x (torch.Tensor): X coordinates for sampling.
-        order (int): Sampling interpolation order (0 for nearest,
-            1 for bilinear).
+        mode (str, optional): Sampling interpolation mode, 'nearest' or
+            'bilinear'. Defaults to 'bilinear'.
 
     Returns:
         torch.Tensor: Sampled cube faces tensor.
     """
-    # cube_faces: [6,face_w, face_w, C]
+    # cube_faces: [6, face_w, face_w, C]
     # We must sample according to tp (face index), coor_y, coor_x
     # First we must flatten all faces into a single big image (like cube_h)
     # The original, code tries to do complicated padding and wrapping.
@@ -426,8 +425,6 @@ def sample_cubefaces(
     global_x = coor_x + tp.float() * face_w
     global_y = coor_y
 
-    mode = "bilinear" if order == 1 else "nearest"
-
     return grid_sample_wrap(cube_h, global_x, global_y, mode=mode)
 
 
@@ -458,6 +455,9 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
     """
+    assert all(
+        cube.shape == cube_list[0].shape for cube in cube_list
+    ), "All cube faces should have the same shape."
     return torch.cat(cube_list, dim=1)
 
 
@@ -507,6 +507,15 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     """
     Convert a horizontal cube representation to a dice layout representation.
 
+    Output order: Front Right Back Left Up Down
+       ┌────┬────┬────┬────┐
+       │    │ U  │    │    │
+       ├────┼────┼────┼────┤
+       │ L  │ F  │ R  │ B  │
+       ├────┼────┼────┼────┤
+       │    │ D  │    │    │
+       └────┴────┴────┴────┘
+
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor of shape
             [w, w*6, C].
@@ -534,6 +543,15 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
 def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
     """
     Convert a dice layout representation to a horizontal cube representation.
+
+    Input order: Front Right Back Left Up Down
+       ┌────┬────┬────┬────┐
+       │    │ U  │    │    │
+       ├────┼────┼────┼────┤
+       │ L  │ F  │ R  │ B  │
+       ├────┼────┼────┼────┤
+       │    │ D  │    │    │
+       └────┴────┴────┴────┘
 
     Args:
         cube_dice (torch.Tensor): Dice layout cube representation tensor of shape
@@ -620,8 +638,6 @@ def c2e(
         else:
             raise NotImplementedError("unknown cube_format and cubemap type")
 
-    order = 1 if mode == "bilinear" else 0
-
     if cube_format == "horizon" and isinstance(cubemap, torch.Tensor):
         assert cubemap.dim() == 3
         cube_h = cubemap
@@ -656,7 +672,7 @@ def c2e(
 
     cube_faces = torch.stack(
         torch.split(cube_h, face_w, dim=1), dim=0
-    )  # [6, face_w, face_w,C]
+    )  # [6, face_w, face_w, C]
 
     tp = equirect_facetype(h, w, device=device, dtype=dtype)
 
@@ -684,7 +700,7 @@ def c2e(
     coor_x = (torch.clamp(coor_x, -0.5, 0.5) + 0.5) * face_w
     coor_y = (torch.clamp(coor_y, -0.5, 0.5) + 0.5) * face_w
 
-    equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, order)
+    equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, mode)
 
     # Convert back to CHW if required
     equirec = equirec.permute(2, 0, 1) if channels_first else equirec
@@ -740,7 +756,6 @@ def e2c(
     assert len(e_img.shape) == 3
     e_img = e_img.permute(1, 2, 0) if channels_first else e_img
     h, w = e_img.shape[:2]
-    order = 1 if mode == "bilinear" else 0
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
@@ -748,7 +763,7 @@ def e2c(
     uv = xyz2uv(xyz)
     coor_xy = uv2coor(uv, h, w)
     # Sample all channels:
-    out_c = sample_equirec(e_img, coor_xy, order)  # [face_w, 6*face_w, C]
+    out_c = sample_equirec(e_img, coor_xy, mode)  # [face_w, 6*face_w, C]
     # out_c shape: we did it directly for each pixel in the cube map
 
     result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]
@@ -782,8 +797,8 @@ def e2c(
 def e2p(
     e_img: torch.Tensor,
     fov_deg: Union[float, Tuple[float, float]],
-    u_deg: float,
-    v_deg: float,
+    h_deg: float,
+    w_deg: float,
     out_hw: Tuple[int, int],
     in_rot_deg: float = 0,
     mode: str = "bilinear",
@@ -797,8 +812,8 @@ def e2p(
             [C, H, W] or [H, W, C].
         fov_deg (Union[float, Tuple[float, float]]): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
-        u_deg (float): Horizontal rotation angle in degrees.
-        v_deg (float): Vertical rotation angle in degrees.
+        h_deg (float): Horizontal rotation angle in degrees.
+        w_deg (float): Vertical rotation angle in degrees.
         out_hw (Tuple[int, int]): Output image height and width.
         in_rot_deg (float, optional): Input rotation angle in degrees. Defaults
             to 0.
@@ -824,15 +839,13 @@ def e2p(
 
     in_rot = in_rot_deg * torch.pi / 180
 
-    order = 1 if mode == "bilinear" else 0
-
-    u = -u_deg * torch.pi / 180
-    v = v_deg * torch.pi / 180
+    h_deg = -h_deg * torch.pi / 180
+    w_deg = w_deg * torch.pi / 180
     xyz = xyzpers(
         h_fov_rad,
         v_fov_rad,
-        u,
-        v,
+        h_deg,
+        w_deg,
         out_hw,
         in_rot,
         device=e_img.device,
@@ -841,7 +854,7 @@ def e2p(
     uv = xyz2uv(xyz)
     coor_xy = uv2coor(uv, h, w)
 
-    pers_img = sample_equirec(e_img, coor_xy, order)
+    pers_img = sample_equirec(e_img, coor_xy, mode)
 
     # Convert back to CHW if required
     pers_img = pers_img.permute(2, 0, 1) if channels_first else pers_img

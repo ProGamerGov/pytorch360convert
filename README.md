@@ -101,30 +101,36 @@ Coverting equirectangular images into cubemaps is easy. For simplicitly, we'll u
 ```python
 from pytorch360convert import e2c
 
-# Load equirectangular image
-equi_image = load_image_to_tensor("360_panorama.jpg")
+# Load equirectangular image (3, 1376, 2752)
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+face_w = equi_image.shape[2] // 4  # 2752 / 4 = 688
 
 # Convert to cubemap (dice format)
 cubemap = e2c(
     equi_image,                   # CHW format
-    face_w=1024,                  # Width of each cube face
+    face_w=face_w,                # Width of each cube face
     mode='bilinear',              # Sampling interpolation
     cube_format='dice'            # Output cubemap layout
 )
 
 # Save cubemap faces
-save_tensor_as_image(cubemap, "cubemap.jpg")
+save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 ```
+
+| Equirectangular Input | Cubemap 'Dice' Output |
+| :---: | :----: |
+| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_dice_cubemap.jpg) |
+
 
 ### Cubemap to Equirectangular Conversion
 
-We can also convert cubemaps into equirectangular images, like so. Note that we use the same cubemap we created above and the same cubemap format used to make it.
+We can also convert cubemaps into equirectangular images, like so. Note that we can use the same cubemap we created above as long as we used the same cubemap format.
 
 ```python
 from pytorch360convert import c2e
 
 # Load cubemap in 'dice' format
-equi_image = load_image_to_tensor("cubemap.jpg")
+equi_image = load_image_to_tensor("dice_cubemap.jpg")
 
 # Convert cubemap back to equirectangular
 equirectangular = c2e(
@@ -146,15 +152,19 @@ from pytorch360convert import e2p
 # Extract perspective view from equirectangular image
 perspective_view = e2p(
     equi_image,                   # Equirectangular image
-    fov_deg=(90, 60),             # Horizontal and vertical FOV
-    u_deg=45,                     # Horizontal rotation
-    v_deg=15,                     # Vertical rotation
-    out_hw=(720, 1280),           # Output image dimensions
+    fov_deg=(70, 60),             # Horizontal and vertical FOV
+    h_deg=260,                    # Horizontal rotation
+    w_deg=50,                     # Vertical rotation
+    out_hw=(512, 768),            # Output image dimensions
     mode='bilinear'               # Sampling interpolation
 )
 
 save_tensor_as_image(perspective_view, "perspective.jpg")
 ```
+
+| Equirectangular Input | Perspective Output |
+| :---: | :----: |
+| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_perspective.jpg) |
 
 
 ## 📚 Basic Functions
@@ -200,8 +210,8 @@ Extracts a perspective view from an equirectangular image.
 - **Parameters**:
   - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
   - `fov_deg` (float or tuple): Field of view in degrees. If using a tuple, adhere to the following format: (h_fov_deg, v_fov_deg)
-  - `u_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
-  - `v_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
+  - `h_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
+  - `w_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
   - `out_hw` (tuple): Output image dimensions in the shape of `(height, width)`.
   - `in_rot_deg` (float, optional): Inplane rotation angle. Default: 0
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear` and `nearest`. Default: `bilinear`
