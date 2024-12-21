@@ -675,7 +675,7 @@ def c2e(
 
     cube_faces = torch.stack(
         torch.split(cube_h, face_w, dim=1), dim=0
-    )  # [6, face_w, face_w,C]
+    )  # [6, face_w, face_w, C]
 
     tp = equirect_facetype(h, w, device=device, dtype=dtype)
 
