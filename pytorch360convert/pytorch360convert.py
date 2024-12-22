@@ -1,25 +1,7 @@
-from enum import IntEnum
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
-
-
-class Face(IntEnum):
-    """Face type indexing for vectorization."""
-
-    FRONT = 0
-    RIGHT = 1
-    BACK = 2
-    LEFT = 3
-    UP = 4
-    DOWN = 5
-
-
-class Dim(IntEnum):
-    X = 0
-    Y = 1
-    Z = 2
 
 
 def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
@@ -85,40 +67,40 @@ def xyzcube(
     y_flip = torch.flip(y, [0])
 
     # Front face (z = 0.5)
-    front_indices = _face_slice(Face.FRONT, face_w, device)
-    out[:, front_indices, Dim.X] = x
-    out[:, front_indices, Dim.Y] = y
-    out[:, front_indices, Dim.Z] = 0.5
+    front_indices = _face_slice(0, face_w, device)
+    out[:, front_indices, 0] = x
+    out[:, front_indices, 1] = y
+    out[:, front_indices, 2] = 0.5
 
     # Right face (x = 0.5)
-    right_indices = _face_slice(Face.RIGHT, face_w, device)
-    out[:, right_indices, Dim.X] = 0.5
-    out[:, right_indices, Dim.Y] = y
-    out[:, right_indices, Dim.Z] = x_flip
+    right_indices = _face_slice(1, face_w, device)
+    out[:, right_indices, 0] = 0.5
+    out[:, right_indices, 1] = y
+    out[:, right_indices, 2] = x_flip
 
     # Back face (z = -0.5)
-    back_indices = _face_slice(Face.BACK, face_w, device)
-    out[:, back_indices, Dim.X] = x_flip
-    out[:, back_indices, Dim.Y] = y
-    out[:, back_indices, Dim.Z] = -0.5
+    back_indices = _face_slice(2, face_w, device)
+    out[:, back_indices, 0] = x_flip
+    out[:, back_indices, 1] = y
+    out[:, back_indices, 2] = -0.5
 
     # Left face (x = -0.5)
-    left_indices = _face_slice(Face.LEFT, face_w, device)
-    out[:, left_indices, Dim.X] = -0.5
-    out[:, left_indices, Dim.Y] = y
-    out[:, left_indices, Dim.Z] = x
+    left_indices = _face_slice(3, face_w, device)
+    out[:, left_indices, 0] = -0.5
+    out[:, left_indices, 1] = y
+    out[:, left_indices, 2] = x
 
     # Up face (y = 0.5)
-    up_indices = _face_slice(Face.UP, face_w, device)
-    out[:, up_indices, Dim.X] = x
-    out[:, up_indices, Dim.Y] = 0.5
-    out[:, up_indices, Dim.Z] = y_flip
+    up_indices = _face_slice(4, face_w, device)
+    out[:, up_indices, 0] = x
+    out[:, up_indices, 1] = 0.5
+    out[:, up_indices, 2] = y_flip
 
     # Down face (y = -0.5)
-    down_indices = _face_slice(Face.DOWN, face_w, device)
-    out[:, down_indices, Dim.X] = x
-    out[:, down_indices, Dim.Y] = -0.5
-    out[:, down_indices, Dim.Z] = y
+    down_indices = _face_slice(5, face_w, device)
+    out[:, down_indices, 0] = x
+    out[:, down_indices, 1] = -0.5
+    out[:, down_indices, 2] = y
 
     return out
 
