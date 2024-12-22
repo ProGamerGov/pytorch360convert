@@ -465,7 +465,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
         # assertTensorAlmostEqual(self, cubic_img, test_faces)
 
     def test_c2e_then_e2c_gpu(self) -> None:
@@ -484,8 +484,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
-        self.assertTrue(cubic_img.is_cuda)
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.is_cuda)  # type: ignore[union-attr]
         # assertTensorAlmostEqual(self, cubic_img, test_faces)
 
     def test_c2e_stack_grad(self) -> None:
@@ -507,8 +507,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
-        self.assertTrue(cubic_img.requires_grad)
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.requires_grad)  # type: ignore[union-attr]
 
     def test_c2e_then_e2c_stack_grad(self) -> None:
         face_width = 512
@@ -524,8 +524,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
-        self.assertTrue(cubic_img.requires_grad)
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.requires_grad)  # type: ignore[union-attr]
 
     def test_c2e_list_grad(self) -> None:
         face_width = 512
@@ -548,9 +548,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
             equi_img, face_w=face_width, mode="bilinear", cube_format="list"
         )
         for i in range(6):
-            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])  # type: ignore[index]
         for i in range(6):
-            self.assertTrue(cubic_img[i].requires_grad)
+            self.assertTrue(cubic_img[i].requires_grad)  # type: ignore[index]
 
     def test_c2e_then_e2c_list_grad(self) -> None:
         face_width = 512
@@ -570,9 +570,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
             equi_img, face_w=face_width, mode="bilinear", cube_format="stack"
         )
         for i in range(6):
-            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])  # type: ignore[index]
         for i in range(6):
-            self.assertTrue(cubic_img[i].requires_grad)
+            self.assertTrue(cubic_img[i].requires_grad)  # type: ignore[index]
 
     def test_c2e_dict_grad(self) -> None:
         dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
@@ -610,9 +610,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
             equi_img, face_w=face_width, mode="bilinear", cube_format="dict"
         )
         for i in dict_keys:
-            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])
+            self.assertEqual(list(cubic_img[i].shape), [3, face_width, face_width])  # type: ignore
         for i in dict_keys:
-            self.assertTrue(cubic_img[i].requires_grad)
+            self.assertTrue(cubic_img[i].requires_grad)  # type: ignore
 
     def test_c2e_stack_nohw_grad(self) -> None:
         face_width = 512
@@ -721,7 +721,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         cubic_img_np_tensor = torch.from_numpy(cubic_img_np).permute(2, 0, 1).float()
 
-        assertTensorAlmostEqual(self, cubic_img, cubic_img_np_tensor, 5858.8921)
+        assertTensorAlmostEqual(self, cubic_img, cubic_img_np_tensor, 5858.8921)  # type: ignore[arg-type]
 
     def test_e2c_horizon_grad(self) -> None:
         face_width = 512
@@ -729,8 +729,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="horizon"
         )
-        self.assertEqual(list(cubic_img.shape), [3, face_width, face_width * 6])
-        self.assertTrue(cubic_img.requires_grad)
+        self.assertEqual(list(cubic_img.shape), [3, face_width, face_width * 6])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.requires_grad)  # type: ignore[union-attr]
 
     def test_e2c_dice_grad(self) -> None:
         face_width = 512
@@ -738,8 +738,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="dice"
         )
-        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width * 4])
-        self.assertTrue(cubic_img.requires_grad)
+        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width * 4])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.requires_grad)  # type: ignore[union-attr]
 
     def test_c2e_then_e2c_dice_grad(self) -> None:
         face_width = 512
@@ -755,8 +755,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             equi_img, face_w=face_width, mode="bilinear", cube_format="dice"
         )
-        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width * 4])
-        self.assertTrue(cubic_img.requires_grad)
+        self.assertEqual(list(cubic_img.shape), [3, face_width * 3, face_width * 4])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.requires_grad)  # type: ignore[union-attr]
 
     def test_e2p(self) -> None:
         # Create a simple test equirectangular image
@@ -813,8 +813,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
-        self.assertTrue(cubic_img.is_cuda)
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.is_cuda)  # type: ignore[union-attr]
 
     def test_c2e_stack_gpu(self) -> None:
         if not torch.cuda.is_available():
@@ -839,8 +839,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
-        self.assertEqual(cubic_img.dtype, torch.float16)
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertEqual(cubic_img.dtype, torch.float16)  # type: ignore[union-attr]
 
     def test_e2c_stack_float64(self) -> None:
         face_width = 512
@@ -850,8 +850,8 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])
-        self.assertEqual(cubic_img.dtype, torch.float64)
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertEqual(cubic_img.dtype, torch.float64)  # type: ignore[union-attr]
 
     def test_c2e_stack_float16(self) -> None:
         face_width = 512
@@ -986,7 +986,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])
+        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])  # type: ignore[union-attr]
 
     def test_e2c_stack_4channels(self) -> None:
         channels = 4
@@ -995,7 +995,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cubic_img = e2c(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
-        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])
+        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])  # type: ignore[union-attr]
 
     def test_e2p_1channel(self) -> None:
         h, w = 64, 128
