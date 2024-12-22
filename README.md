@@ -185,11 +185,11 @@ Converts an equirectangular image to a cubemap projection.
   - `face_w` (int, optional): Cube face width. Default: `256`.
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear` and `nearest`. Default: `bilinear`
   - `cube_format` (str, optional): The desired output cubemap format. Options are `dict`, `list`, `horizon`, `stack`, and `dice`. Default: `dice`
-    - `stack` (torch.Tensor): Stack of 6 faces, in the order of:  `['Front', 'Right', 'Back', 'Left', 'Up', 'Down']`.
-    - `list` (list of torch.Tensor): List of 6 faces, in the order of: `['Front', 'Right', 'Back', 'Left', 'Up', 'Down']`.
-    - `dict` (dict of torch.Tensor): Dictionary with keys pointing to face tensors. Keys are: `['Front', 'Right', 'Back', 'Left', 'Up', 'Down']`
-    - `dice` (torch.Tensor): A cubemap in a `dice` layout.
-    - `horizon` (torch.Tensor): A cubemap in a `horizon` layout.
+    - `stack` (torch.Tensor): Stack of 6 faces, in the order of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+    - `list` (list of torch.Tensor): List of 6 faces, in the order of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+    - `dict` (dict of torch.Tensor): Dictionary with keys pointing to face tensors. Keys are: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+    - `dice` (torch.Tensor): A cubemap in a 'dice' layout.
+    - `horizon` (torch.Tensor): A cubemap in a 'horizon' layout, a 1x6 grid in the order: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
 
 - **Returns**: Cubemap representation of the input image as a tensor, list of tensors, or dict or tensors.
@@ -203,11 +203,11 @@ Converts a cubemap projection to an equirectangular image.
   - `w` (int, optional): Output image width. If set to None, `<cube_face_width> * 4` will be used. Default: `None`.
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear` and `nearest`. Default: `bilinear`
   - `cube_format` (str, optional): Input cubemap format. Options are `dict`, `list`, `horizon`, `stack`, and `dice`. Default: `dice`
-    - `stack` (torch.Tensor): Stack of 6 faces, in the order of:  ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
-    - `list` (list of torch.Tensor): List of 6 faces, in the order of: `['Front', 'Right', 'Back', 'Left', 'Up', 'Down']`.
-    - `dict` (dict of torch.Tensor): Dictionary with keys pointing to face tensors. Keys are expected to be: `['Front', 'Right', 'Back', 'Left', 'Up', 'Down']`
-    - `dice` (torch.Tensor): A cubemap in a `dice` layout.
-    - `horizon` (torch.Tensor): A cubemap in a `horizon` layout.
+    - `stack` (torch.Tensor): Stack of 6 faces, in the order of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+    - `list` (list of torch.Tensor): List of 6 faces, in the order of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+    - `dict` (dict of torch.Tensor): Dictionary with keys pointing to face tensors. Keys are expected to be: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+    - `dice` (torch.Tensor): A cubemap in a 'dice' layout.
+    - `horizon` (torch.Tensor): A cubemap in a 'horizon' layout, a 1x6 grid in the order of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
      
 - **Returns**: Equirectangular projection of the input cubemap as a tensor.
@@ -217,11 +217,11 @@ Extracts a perspective view from an equirectangular image.
 
 - **Parameters**:
   - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
-  - `fov_deg` (float or tuple): Field of view in degrees. If using a tuple, adhere to the following format: (h_fov_deg, v_fov_deg)
+  - `fov_deg` (float or tuple): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
   - `h_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
   - `w_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
-  - `out_hw` (tuple): Output image dimensions in the shape of `(height, width)`.
-  - `in_rot_deg` (float, optional): Inplane rotation angle. Default: 0
+  - `out_hw` (tuple): Output image dimensions in the shape of '(height, width)'.
+  - `in_rot_deg` (float, optional): Inplane rotation angle. Default: `0`
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear` and `nearest`. Default: `bilinear`
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
 
