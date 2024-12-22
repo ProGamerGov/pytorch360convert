@@ -15,14 +15,14 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 
 
 <div align="left">
- <img src="https://github.com/ProGamerGov/pytorch360convert/blob/main/examples/output_equirectangular.jpg?raw=true" width="710px">
+ <img src="https://github.com/ProGamerGov/pytorch360convert/blob/main/examples/basic_equirectangular.jpg?raw=true" width="710px">
 </div>
 
 * Equirectangular format
 
 
 <div align="left">
- <img src="https://github.com/ProGamerGov/pytorch360convert/blob/main/examples/output_cubic.jpg?raw=true" width="710px">
+ <img src="https://github.com/ProGamerGov/pytorch360convert/blob/main/examples/basic_dice_cubemap.jpg?raw=true" width="710px">
 </div>
 
 * Cubemap 'dice' format
