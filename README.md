@@ -22,7 +22,7 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 
 
 <div align="left">
- <img src="https://github.com/ProGamerGov/pytorch360convert/blob/main/examples/basic_dice_cubemap.jpg?raw=true" width="710px">
+ <img src="examples/basic_dice_cubemap.jpg" width="710px">
 </div>
 
 * Cubemap 'dice' format
