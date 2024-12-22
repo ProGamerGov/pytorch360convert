@@ -97,7 +97,7 @@ def equirect_uvgrid(
     """
     u = torch.linspace(-torch.pi, torch.pi, steps=w, dtype=dtype, device=device)
     v = torch.linspace(torch.pi, -torch.pi, steps=h, dtype=dtype, device=device) / 2
-    grid_u, grid_v = torch.meshgrid(u, v)
+    grid_v, grid_u = torch.meshgrid(v, u)
     uv = torch.stack([grid_u, grid_v], dim=-1)
     return uv
 
