@@ -96,6 +96,53 @@ class TestFunctionsBaseTest(unittest.TestCase):
         identity = torch.mm(result, result_t)
         torch.testing.assert_close(identity, torch.eye(3), rtol=1e-6, atol=1e-6)
 
+    def test_slice_chunk_default(self) -> None:
+        index = 2
+        width = 3
+        offset = 0
+        expected = torch.tensor([6, 7, 8], dtype=torch.long)
+        result = _slice_chunk(index, width, offset)
+        torch.testing.assert_tensor_equal(result, expected)
+
+    def test_slice_chunk_with_offset(self) -> None:
+        # Test with a non-zero offset
+        index = 2
+        width = 3
+        offset = 1
+        expected = torch.tensor([7, 8, 9], dtype=torch.long)
+        result = _slice_chunk(index, width, offset)
+        torch.testing.assert_tensor_equal(result, expected)
+
+    def test_slice_chunk_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        index = 2
+        width = 3
+        offset = 0
+        expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
+        result = _slice_chunk(index, width, offset)
+        torch.testing.assert_tensor_equal(result, expected)
+        self.assertTrue(result.is_cuda)
+
+    def test_face_slice(self) -> None:
+        # Test _face_slice, which internally calls _slice_chunk
+        index = 2
+        face_w = 3
+        expected = torch.tensor([6, 7, 8], dtype=torch.long)
+        result = _face_slice(index, face_w)
+        torch.testing.assert_tensor_equal(result, expected)
+
+    def test_face_slice_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        # Test _face_slice, which internally calls _slice_chunk
+        index = 2
+        face_w = 3
+        expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
+        result = _face_slice(index, face_w)
+        torch.testing.assert_tensor_equal(result, expected)
+        self.assertTrue(result.is_cuda)
+
     def test_xyzcube(self) -> None:
         face_w = 4
         result = xyzcube(face_w)
