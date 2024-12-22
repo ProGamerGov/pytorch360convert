@@ -783,7 +783,7 @@ def e2c(
     out_c = sample_equirec(e_img, coor_xy, mode)  # [face_w, 6*face_w, C]
     # out_c shape: we did it directly for each pixel in the cube map
 
-    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]
+    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor], None] = None
     if cube_format == "horizon":
         result = out_c
     elif cube_format == "list" or cube_format == "stack":
