@@ -28,7 +28,7 @@ cd pytorch360convert
 black --check --diff .
 flake8 . --ignore=E203,W503 --max-line-length=88 --exclude build,dist
 ufmt check .
-mypy . --ignore-missing-imports --allow-redefinition
+mypy . --ignore-missing-imports --allow-redefinition --explicit-package-bases
 cd ..
 ```
 
