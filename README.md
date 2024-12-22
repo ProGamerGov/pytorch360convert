@@ -62,9 +62,11 @@ pip install .
 - Lossless conversion between image formats.
 - Supports different cubemap input formats (horizon, list, dict, dice).
 - Configurable sampling modes (bilinear, nearest).
-- CPU and torch.float16 support.
+- Supports different dtypes (float16, float32, float64).
+- CPU support.
 - GPU acceleration.
 - Differentiable transformations for deep learning pipelines.
+- [TorchScript](https://pytorch.org/docs/stable/jit.html) (JIT) support.
 
 
 ## 💡 Usage Examples
