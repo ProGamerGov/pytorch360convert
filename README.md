@@ -98,7 +98,7 @@ def save_tensor_as_image(tensor: torch.Tensor, save_path: str) -> None:
 
 ### Equirectangular to Cubemap Conversion
 
-Coverting equirectangular images into cubemaps is easy. For simplicitly, we'll use the 'dice' format, which places all cube faces into a single 4x3 grid image.
+Converting equirectangular images into cubemaps is easy. For simplicity, we'll use the 'dice' format, which places all cube faces into a single 4x3 grid image.
 
 ```python
 from pytorch360convert import e2c
