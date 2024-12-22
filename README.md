@@ -235,7 +235,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 🔬 Citation
 
-If you use this library in your research or project, please refer to the included CITATION.cff file or cite it as follows:
+If you use this library in your research or project, please refer to the included [CITATION.cff](CITATION.cff) file or cite it as follows:
 
 ### BibTeX
 ```bibtex
