@@ -41,6 +41,19 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
 def _slice_chunk(
     index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")
 ) -> torch.Tensor:
+    """
+    Generate a tensor of indices for a chunk of values.
+
+    Args:
+        index (int): The starting index for the chunk.
+        width (int): The number of indices in the chunk.
+        offset (int, optional): An offset added to the starting index, default is 0.
+        device (torch.device, optional): The device for the tensor.
+            Default: torch.device('cpu')
+
+    Returns:
+        torch.Tensor: A tensor containing the indices for the chunk.
+    """
     start = index * width + offset
     # Create a tensor of indices instead of using slice
     return torch.arange(start, start + width, dtype=torch.long, device=device)
@@ -49,6 +62,18 @@ def _slice_chunk(
 def _face_slice(
     index: int, face_w: int, device: torch.device = torch.device("cpu")
 ) -> torch.Tensor:
+    """
+    Generate a slice of indices based on the face width.
+
+    Args:
+        index (int): The starting index.
+        face_w (int): The width of the face (number of indices).
+        device (torch.device, optional): The device for the tensor.
+            Default: torch.device('cpu')
+
+    Returns:
+        torch.Tensor: A tensor containing the slice of indices.
+    """
     return _slice_chunk(index, face_w)
 
 
@@ -140,7 +165,7 @@ def equirect_uvgrid(
     """
     u = torch.linspace(-torch.pi, torch.pi, steps=w, dtype=dtype, device=device)
     v = torch.linspace(torch.pi, -torch.pi, steps=h, dtype=dtype, device=device) / 2
-    grid_v, grid_u = torch.meshgrid(v, u)
+    grid_v, grid_u = torch.meshgrid(v, u, indexing="ij")
     uv = torch.stack([grid_u, grid_v], dim=-1)
     return uv
 
@@ -230,7 +255,7 @@ def xyzpers(
     x_range = torch.linspace(
         -x_max.item(), x_max.item(), steps=out_hw[1], dtype=dtype, device=device
     )
-    grid_y, grid_x = torch.meshgrid(-y_range, x_range)
+    grid_y, grid_x = torch.meshgrid(-y_range, x_range, indexing="ij")
     out[..., 0] = grid_x
     out[..., 1] = grid_y
 
@@ -668,7 +693,7 @@ def c2e(
         elif cube_format == "dict" and torch.jit.isinstance(
             cubemap, Dict[str, torch.Tensor]
         ):
-            cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}
+            cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}  # type: ignore
         elif cube_format in ["horizon", "dice"] and isinstance(cubemap, torch.Tensor):
             cubemap = cubemap.permute(1, 2, 0)
         else:
@@ -683,8 +708,8 @@ def c2e(
     elif cube_format == "dict" and torch.jit.isinstance(
         cubemap, Dict[str, torch.Tensor]
     ):
-        assert all(v.dim() == 3 for k, v in cubemap.items())
-        cube_h = cube_dict2h(cubemap)
+        assert all(v.dim() == 3 for k, v in cubemap.items())  # type: ignore[union-attr]
+        cube_h = cube_dict2h(cubemap)  # type: ignore[arg-type]
     elif cube_format == "dice" and isinstance(cubemap, torch.Tensor):
         assert len(cubemap.shape) == 3
         cube_h = cube_dice2h(cubemap)
@@ -825,7 +850,7 @@ def e2c(
             result = [r.permute(2, 0, 1) for r in result]
         elif cube_format == "dict":
             assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
-            result = {k: v.permute(2, 0, 1) for k, v in result.items()}
+            result = {k: v.permute(2, 0, 1) for k, v in result.items()}  # type: ignore[union-attr]
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)
             result = result.permute(2, 0, 1)
