@@ -7,6 +7,8 @@ import numpy as np
 
 import torch
 from pytorch360convert.pytorch360convert import (
+    _face_slice,
+    _slice_chunk,
     c2e,
     coor2uv,
     cube_dice2h,
@@ -27,8 +29,6 @@ from pytorch360convert.pytorch360convert import (
     xyz2uv,
     xyzcube,
     xyzpers,
-    _slice_chunk,
-    _face_slice,
 )
 
 
