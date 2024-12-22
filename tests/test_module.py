@@ -981,7 +981,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [6, channels, face_width, face_width], dtype=torch.float64
         )
 
-		c2e_jit = torch.jit.script(c2e)
+        c2e_jit = torch.jit.script(c2e)
         equi_img = c2e_jit(
             test_faces,
             face_width * 2,
@@ -997,7 +997,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         channels = 3
         face_width = 512
         test_faces = torch.ones([channels, face_width * 2, face_width * 4])
-		e2c_jit = torch.jit.script(e2c)
+        e2c_jit = torch.jit.script(e2c)
         cubic_img = e2c_jit(
             test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
         )
