@@ -1,12 +1,12 @@
+from enum import IntEnum
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
 
-from enum import IntEnum
 
 class Face(IntEnum):
-    """Face type indexing for numpy vectorization."""
+    """Face type indexing for vectorization."""
 
     FRONT = 0
     RIGHT = 1
@@ -20,6 +20,7 @@ class Dim(IntEnum):
     X = 0
     Y = 1
     Z = 2
+
 
 def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     """
@@ -51,6 +52,10 @@ def slice_chunk(index: int, width: int, offset=0):
     return slice(start, start + width)
 
 
+def face_slice(index: int, face_w: int):
+    return slice_chunk(index, face_w)
+
+
 def xyzcube(
     face_w: int,
     device: torch.device = torch.device("cpu"),
@@ -72,44 +77,41 @@ def xyzcube(
     """
     out = torch.empty((face_w, face_w * 6, 3), dtype=torch.float32)
     rng = torch.linspace(-0.5, 0.5, steps=face_w, dtype=dtype, device=device)
-    x, y = torch.meshgrid(rng, -rng, indexing='xy')  # shape (face_w, face_w)
+    x, y = torch.meshgrid(rng, -rng, indexing="xy")  # shape (face_w, face_w)
 
     # Pre-compute flips
     x_flip = torch.flip(x, [1])
     y_flip = torch.flip(y, [0])
 
-    def face_slice(index):
-        return slice_chunk(index, face_w)
-
     # Front face (z = 0.5)
-    out[:, face_slice(Face.FRONT), Dim.X] = x
-    out[:, face_slice(Face.FRONT), Dim.Y] = y
-    out[:, face_slice(Face.FRONT), Dim.Z] = 0.5
+    out[:, face_slice(Face.FRONT, face_w), Dim.X] = x
+    out[:, face_slice(Face.FRONT, face_w), Dim.Y] = y
+    out[:, face_slice(Face.FRONT, face_w), Dim.Z] = 0.5
 
     # Right face (x = 0.5)
-    out[:, face_slice(Face.RIGHT), Dim.X] = 0.5
-    out[:, face_slice(Face.RIGHT), Dim.Y] = y
-    out[:, face_slice(Face.RIGHT), Dim.Z] = x_flip
+    out[:, face_slice(Face.RIGHT, face_w), Dim.X] = 0.5
+    out[:, face_slice(Face.RIGHT, face_w), Dim.Y] = y
+    out[:, face_slice(Face.RIGHT, face_w), Dim.Z] = x_flip
 
     # Back face (z = -0.5)
-    out[:, face_slice(Face.BACK), Dim.X] = x_flip
-    out[:, face_slice(Face.BACK), Dim.Y] = y
-    out[:, face_slice(Face.BACK), Dim.Z] = -0.5
+    out[:, face_slice(Face.BACK, face_w), Dim.X] = x_flip
+    out[:, face_slice(Face.BACK, face_w), Dim.Y] = y
+    out[:, face_slice(Face.BACK, face_w), Dim.Z] = -0.5
 
     # Left face (x = -0.5)
-    out[:, face_slice(Face.LEFT), Dim.X] = -0.5
-    out[:, face_slice(Face.LEFT), Dim.Y] = y
-    out[:, face_slice(Face.LEFT), Dim.Z] = x
+    out[:, face_slice(Face.LEFT, face_w), Dim.X] = -0.5
+    out[:, face_slice(Face.LEFT, face_w), Dim.Y] = y
+    out[:, face_slice(Face.LEFT, face_w), Dim.Z] = x
 
     # Up face (y = 0.5)
-    out[:, face_slice(Face.UP), Dim.X] = x
-    out[:, face_slice(Face.UP), Dim.Y] = 0.5
-    out[:, face_slice(Face.UP), Dim.Z] = y_flip
+    out[:, face_slice(Face.UP, face_w), Dim.X] = x
+    out[:, face_slice(Face.UP, face_w), Dim.Y] = 0.5
+    out[:, face_slice(Face.UP, face_w), Dim.Z] = y_flip
 
     # Down face (y = -0.5)
-    out[:, face_slice(Face.DOWN), Dim.X] = x
-    out[:, face_slice(Face.DOWN), Dim.Y] = -0.5
-    out[:, face_slice(Face.DOWN), Dim.Z] = y
+    out[:, face_slice(Face.DOWN, face_w), Dim.X] = x
+    out[:, face_slice(Face.DOWN, face_w), Dim.Y] = -0.5
+    out[:, face_slice(Face.DOWN, face_w), Dim.Z] = y
 
     return out
 
@@ -439,9 +441,6 @@ def sample_cubefaces(
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
     cube_faces_mod = cube_faces.clone()
-    #cube_faces_mod[1] = torch.flip(cube_faces_mod[1], dims=[1])
-    #cube_faces_mod[2] = torch.flip(cube_faces_mod[2], dims=[1])
-    #cube_faces_mod[4] = torch.flip(cube_faces_mod[4], dims=[0])
 
     face_w = cube_faces_mod.shape[1]
     cube_h = torch.cat(
@@ -570,11 +569,6 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_list[i]
-        #if i in [1, 2]:
-        #    face = torch.flip(face, dims=[1])
-        #if i == 4:
-        #    face = torch.flip(face, dims=[0])
-        #face = torch.flip(face, dims=[0, 1])
         cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w] = face
     return cube_dice
 
@@ -606,12 +600,7 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w]
-        #if i in [1, 2]:
-        #    face = torch.flip(face, dims=[1])
-        #if i == 4:
-        #    face = torch.flip(face, dims=[0])
         cube_h[:, i * w : (i + 1) * w] = face
-        #face = torch.flip(face, dims=[0, 1])
     return cube_h
 
 
