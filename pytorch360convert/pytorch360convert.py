@@ -18,15 +18,38 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     ax = ax / torch.sqrt((ax**2).sum())
     c = torch.cos(rad)
     s = torch.sin(rad)
-    R = torch.diag(torch.tensor([c, c, c], dtype=ax.dtype, device=ax.device))
+    R = torch.diag(torch.stack([c, c, c]))
     R = R + (1.0 - c) * torch.ger(ax, ax)
-    K = torch.tensor(
-        [[0, -ax[2], ax[1]], [ax[2], 0, -ax[0]], [-ax[1], ax[0], 0]],
-        dtype=ax.dtype,
-        device=ax.device,
+    K = torch.stack(
+        [
+            torch.stack(
+                [torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[2], ax[1]]
+            ),
+            torch.stack(
+                [ax[2], torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[0]]
+            ),
+            torch.stack(
+                [-ax[1], ax[0], torch.tensor(0.0, device=ax.device, dtype=ax.dtype)]
+            ),
+        ],
+        dim=0,
     )
     R = R + K * s
     return R
+
+
+def _slice_chunk(
+    index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")
+) -> torch.Tensor:
+    start = index * width + offset
+    # Create a tensor of indices instead of using slice
+    return torch.arange(start, start + width, dtype=torch.long, device=device)
+
+
+def _face_slice(
+    index: int, face_w: int, device: torch.device = torch.device("cpu")
+) -> torch.Tensor:
+    return _slice_chunk(index, face_w)
 
 
 def xyzcube(
@@ -48,29 +71,49 @@ def xyzcube(
     Returns:
         torch.Tensor: Cube coordinates tensor of shape (face_w, face_w * 6, 3).
     """
+    out = torch.empty((face_w, face_w * 6, 3), dtype=dtype, device=device)
     rng = torch.linspace(-0.5, 0.5, steps=face_w, dtype=dtype, device=device)
-    grid_y, grid_x = torch.meshgrid(rng, -rng)  # shape (face_w, face_w)
-    grid = torch.stack([grid_x, grid_y], dim=-1)  # (face_w, face_w, 2)
+    x, y = torch.meshgrid(rng, -rng, indexing="xy")  # shape (face_w, face_w)
 
-    out = torch.zeros((face_w, face_w * 6, 3), dtype=dtype, device=device)
-    # Front
-    out[:, 0 * face_w : 1 * face_w, 0:2] = grid
-    out[:, 0 * face_w : 1 * face_w, 2] = 0.5
-    # Right
-    out[:, 1 * face_w : 2 * face_w, [2, 1]] = grid
-    out[:, 1 * face_w : 2 * face_w, 0] = 0.5
-    # Back
-    out[:, 2 * face_w : 3 * face_w, 0:2] = grid
-    out[:, 2 * face_w : 3 * face_w, 2] = -0.5
-    # Left
-    out[:, 3 * face_w : 4 * face_w, [2, 1]] = grid
-    out[:, 3 * face_w : 4 * face_w, 0] = -0.5
-    # Up
-    out[:, 4 * face_w : 5 * face_w, [0, 2]] = grid
-    out[:, 4 * face_w : 5 * face_w, 1] = 0.5
-    # Down
-    out[:, 5 * face_w : 6 * face_w, [0, 2]] = grid
-    out[:, 5 * face_w : 6 * face_w, 1] = -0.5
+    # Pre-compute flips
+    x_flip = torch.flip(x, [1])
+    y_flip = torch.flip(y, [0])
+
+    # Front face (z = 0.5)
+    front_indices = _face_slice(0, face_w, device)
+    out[:, front_indices, 0] = x
+    out[:, front_indices, 1] = y
+    out[:, front_indices, 2] = 0.5
+
+    # Right face (x = 0.5)
+    right_indices = _face_slice(1, face_w, device)
+    out[:, right_indices, 0] = 0.5
+    out[:, right_indices, 1] = y
+    out[:, right_indices, 2] = x_flip
+
+    # Back face (z = -0.5)
+    back_indices = _face_slice(2, face_w, device)
+    out[:, back_indices, 0] = x_flip
+    out[:, back_indices, 1] = y
+    out[:, back_indices, 2] = -0.5
+
+    # Left face (x = -0.5)
+    left_indices = _face_slice(3, face_w, device)
+    out[:, left_indices, 0] = -0.5
+    out[:, left_indices, 1] = y
+    out[:, left_indices, 2] = x
+
+    # Up face (y = 0.5)
+    up_indices = _face_slice(4, face_w, device)
+    out[:, up_indices, 0] = x
+    out[:, up_indices, 1] = 0.5
+    out[:, up_indices, 2] = y_flip
+
+    # Down face (y = -0.5)
+    down_indices = _face_slice(5, face_w, device)
+    out[:, down_indices, 0] = x
+    out[:, down_indices, 1] = -0.5
+    out[:, down_indices, 2] = y
 
     return out
 
@@ -306,7 +349,7 @@ def grid_sample_wrap(
 
     # coor_x, coor_y: [H_out, W_out]
     # We must create a grid for F.grid_sample:
-    # grid_sample expects: input [N, C, H, W], grid [N,H_out, W_out, 2]
+    # grid_sample expects: input [N, C, H, W], grid [N, H_out, W_out, 2]
     # Normalized coords: x: [-1, 1], y: [-1, 1]
     # Handle wrapping horizontally: coor_x modulo W
     coor_x_wrapped = torch.remainder(coor_x, W)  # wrap horizontally
@@ -321,10 +364,10 @@ def grid_sample_wrap(
     img_t = image.permute(2, 0, 1).unsqueeze(0)  # [1,C,H,W]
     grid = grid.unsqueeze(0)  # [1,H_out,W_out,2]
 
-    # grid_sample: note that the code samples using (y,x) order if
+    # grid_sample: note that the code samples using (y, x) order if
     # align_corners=False, we must be careful:
     # grid is defined as grid[:,:,:,0] = x, grid[:,:,:,1] = y,
-    # PyTorch grid_sample expects grid in form (N, H_out, W_out,2),
+    # PyTorch grid_sample expects grid in form (N, H_out, W_out, 2),
     # with grid[:,:,:,0] = x and grid[:,:,:,1] = y
 
     if img_t.dtype == torch.float16 and img_t.device == torch.device("cpu"):
@@ -400,9 +443,6 @@ def sample_cubefaces(
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
     cube_faces_mod = cube_faces.clone()
-    cube_faces_mod[1] = torch.flip(cube_faces_mod[1], dims=[1])
-    cube_faces_mod[2] = torch.flip(cube_faces_mod[2], dims=[1])
-    cube_faces_mod[4] = torch.flip(cube_faces_mod[4], dims=[0])
 
     face_w = cube_faces_mod.shape[1]
     cube_h = torch.cat(
@@ -463,7 +503,7 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
 
 def cube_h2dict(
     cube_h: torch.Tensor,
-    face_keys: List[str] = ["Front", "Right", "Back", "Left", "Up", "Down"],
+    face_keys: Optional[List[str]] = None,
 ) -> Dict[str, torch.Tensor]:
     """
     Convert a horizontal cube representation to a dictionary of cube faces.
@@ -474,32 +514,36 @@ def cube_h2dict(
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor of shape
             [w, w*6, C].
-        face_keys (List[str], optional): List of face keys in order. Defaults
-            to ["Front", "Right", "Back", "Left", "Up", "Down"].
+        face_keys (List[str], optional): List of face keys in order.
+            Defaults to ["Front", "Right", "Back", "Left", "Up", "Down"].
 
     Returns:
         Dict[str, torch.Tensor]: Dictionary of cube faces with keys
             ["Front", "Right", "Back", "Left", "Up", "Down"].
     """
+    if face_keys is None:
+        face_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
     cube_list = cube_h2list(cube_h)
     return dict(zip(face_keys, cube_list))
 
 
 def cube_dict2h(
     cube_dict: Dict[str, torch.Tensor],
-    face_keys: List[str] = ["Front", "Right", "Back", "Left", "Up", "Down"],
+    face_keys: Optional[List[str]] = None,
 ) -> torch.Tensor:
     """
     Convert a dictionary of cube faces to a horizontal cube representation.
 
     Args:
         cube_dict (Dict[str, torch.Tensor]): Dictionary of cube faces.
-        face_keys (List[str], optional): List of face keys in order. Defaults
-            to ["Front", "Right", "Back", "Left", "Up", "Down"].
+        face_keys (List[str], optional): List of face keys in order.
+            Defaults to ["Front", "Right", "Back", "Left", "Up", "Down"].
 
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
     """
+    if face_keys is None:
+        face_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
     return cube_list2h([cube_dict[k] for k in face_keys])
 
 
@@ -531,11 +575,6 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_list[i]
-        if i in [1, 2]:
-            face = torch.flip(face, dims=[1])
-        if i == 4:
-            face = torch.flip(face, dims=[0])
-        face = torch.flip(face, dims=[0, 1])
         cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w] = face
     return cube_dice
 
@@ -567,12 +606,7 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
     sxy = [(1, 1), (2, 1), (3, 1), (0, 1), (1, 0), (1, 2)]
     for i, (sx, sy) in enumerate(sxy):
         face = cube_dice[sy * w : (sy + 1) * w, sx * w : (sx + 1) * w]
-        if i in [1, 2]:
-            face = torch.flip(face, dims=[1])
-        if i == 4:
-            face = torch.flip(face, dims=[0])
         cube_h[:, i * w : (i + 1) * w] = face
-        face = torch.flip(face, dims=[0, 1])
     return cube_h
 
 
@@ -631,7 +665,9 @@ def c2e(
     if channels_first:
         if cube_format == "list" and isinstance(cubemap, (list, tuple)):
             cubemap = [r.permute(1, 2, 0) for r in cubemap]
-        elif cube_format == "dict" and isinstance(cubemap, dict):
+        elif cube_format == "dict" and torch.jit.isinstance(
+            cubemap, Dict[str, torch.Tensor]
+        ):
             cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}
         elif cube_format in ["horizon", "dice"] and isinstance(cubemap, torch.Tensor):
             cubemap = cubemap.permute(1, 2, 0)
@@ -644,7 +680,9 @@ def c2e(
     elif cube_format == "list" and isinstance(cubemap, (list, tuple)):
         assert all([r.dim() == 3 for r in cubemap])
         cube_h = cube_list2h(cubemap)
-    elif cube_format == "dict" and isinstance(cubemap, dict):
+    elif cube_format == "dict" and torch.jit.isinstance(
+        cubemap, Dict[str, torch.Tensor]
+    ):
         assert all(v.dim() == 3 for k, v in cubemap.items())
         cube_h = cube_dict2h(cubemap)
     elif cube_format == "dice" and isinstance(cubemap, torch.Tensor):
@@ -659,11 +697,11 @@ def c2e(
     face_w = cube_h.shape[0]
     assert cube_h.shape[1] == face_w * 6
 
-    if cube_format == "horizon" and not h:
-        h = face_w if not h else h
+    if cube_format == "horizon" and h is None:
+        h = face_w if h is None else h
     else:
-        h = face_w * 2 if not h else h
-    w = face_w * 4 if not w else w
+        h = face_w * 2 if h is None else h
+    w = face_w * 4 if w is None else w
 
     assert w % 8 == 0
 
@@ -766,7 +804,9 @@ def e2c(
     out_c = sample_equirec(e_img, coor_xy, mode)  # [face_w, 6*face_w, C]
     # out_c shape: we did it directly for each pixel in the cube map
 
-    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]
+    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor], None] = (
+        None
+    )
     if cube_format == "horizon":
         result = out_c
     elif cube_format == "list" or cube_format == "stack":
@@ -784,7 +824,7 @@ def e2c(
             assert isinstance(result, (list, tuple))
             result = [r.permute(2, 0, 1) for r in result]
         elif cube_format == "dict":
-            assert isinstance(result, dict)
+            assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
             result = {k: v.permute(2, 0, 1) for k, v in result.items()}
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)

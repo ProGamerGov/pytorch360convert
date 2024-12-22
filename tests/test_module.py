@@ -7,6 +7,8 @@ import numpy as np
 
 import torch
 from pytorch360convert.pytorch360convert import (
+    _face_slice,
+    _slice_chunk,
     c2e,
     coor2uv,
     cube_dice2h,
@@ -95,6 +97,53 @@ class TestFunctionsBaseTest(unittest.TestCase):
         result_t = result.t()
         identity = torch.mm(result, result_t)
         torch.testing.assert_close(identity, torch.eye(3), rtol=1e-6, atol=1e-6)
+
+    def test_slice_chunk_default(self) -> None:
+        index = 2
+        width = 3
+        offset = 0
+        expected = torch.tensor([6, 7, 8], dtype=torch.long)
+        result = _slice_chunk(index, width, offset)
+        torch.testing.assert_close(result, expected)
+
+    def test_slice_chunk_with_offset(self) -> None:
+        # Test with a non-zero offset
+        index = 2
+        width = 3
+        offset = 1
+        expected = torch.tensor([7, 8, 9], dtype=torch.long)
+        result = _slice_chunk(index, width, offset)
+        torch.testing.assert_close(result, expected)
+
+    def test_slice_chunk_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        index = 2
+        width = 3
+        offset = 0
+        expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
+        result = _slice_chunk(index, width, offset)
+        torch.testing.assert_close(result, expected)
+        self.assertTrue(result.is_cuda)
+
+    def test_face_slice(self) -> None:
+        # Test _face_slice, which internally calls _slice_chunk
+        index = 2
+        face_w = 3
+        expected = torch.tensor([6, 7, 8], dtype=torch.long)
+        result = _face_slice(index, face_w)
+        torch.testing.assert_close(result, expected)
+
+    def test_face_slice_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        # Test _face_slice, which internally calls _slice_chunk
+        index = 2
+        face_w = 3
+        expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
+        result = _face_slice(index, face_w)
+        torch.testing.assert_close(result, expected)
+        self.assertTrue(result.is_cuda)
 
     def test_xyzcube(self) -> None:
         face_w = 4
@@ -959,7 +1008,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
         out_hw = (32, 32)
 
         result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
-
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
     def test_e2p_4channels(self) -> None:
@@ -973,5 +1021,48 @@ class TestFunctionsBaseTest(unittest.TestCase):
         out_hw = (32, 32)
 
         result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
+    def test_c2e_stack_jit(self) -> None:
+        channels = 3
+        face_width = 512
+        test_faces = torch.ones(
+            [6, channels, face_width, face_width], dtype=torch.float64
+        )
+
+        c2e_jit = torch.jit.script(c2e)
+        equi_img = c2e_jit(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(
+            list(equi_img.shape), [channels, face_width * 2, face_width * 4]
+        )
+
+    def test_e2c_stack_jit(self) -> None:
+        channels = 3
+        face_width = 512
+        test_faces = torch.ones([channels, face_width * 2, face_width * 4])
+        e2c_jit = torch.jit.script(e2c)
+        cubic_img = e2c_jit(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, channels, face_width, face_width])
+
+    def test_e2p_jit(self) -> None:
+        h, w = 64, 128
+        channels = 3
+        e_img = torch.zeros((channels, h, w))
+
+        fov_deg = 90.0
+        h_deg = 0.0
+        w_deg = 0.0
+        out_hw = (32, 32)
+
+        e2p_jit = torch.jit.script(e2p)
+
+        result = e2p_jit(e_img, fov_deg, h_deg, w_deg, out_hw)
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
