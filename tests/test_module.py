@@ -959,7 +959,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
         out_hw = (32, 32)
 
         result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
-
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
     def test_e2p_4channels(self) -> None:
@@ -973,5 +972,19 @@ class TestFunctionsBaseTest(unittest.TestCase):
         out_hw = (32, 32)
 
         result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
+    def test_e2p_jit(self) -> None:
+        h, w = 64, 128
+        channels = 3
+        e_img = torch.zeros((channels, h, w))
+    
+        fov_deg = 90.0
+        h_deg = 0.0
+        w_deg = 0.0
+        out_hw = (32, 32)
+    
+        e2p_jit = torch.jit.script(pytorch360convert.e2p)
+    
+        result = e2p_jit(e_img, fov_deg, h_deg, w_deg, out_hw)
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
