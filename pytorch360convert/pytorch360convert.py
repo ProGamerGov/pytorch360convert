@@ -38,11 +38,11 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     s = torch.sin(rad)
     R = torch.diag(torch.tensor([c, c, c], dtype=ax.dtype, device=ax.device))
     R = R + (1.0 - c) * torch.ger(ax, ax)
-    K = torch.tensor(
-        [[0, -ax[2], ax[1]], [ax[2], 0, -ax[0]], [-ax[1], ax[0], 0]],
-        dtype=ax.dtype,
-        device=ax.device,
-    )
+    K = torch.stack([
+        torch.stack([torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[2], ax[1]]),
+        torch.stack([ax[2], torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[0]]),
+        torch.stack([-ax[1], ax[0], torch.tensor(0.0, device=ax.device, dtype=ax.dtype)])
+    ], dim=0)
     R = R + K * s
     return R
 
