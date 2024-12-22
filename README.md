@@ -123,6 +123,9 @@ save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 | :---: | :----: |
 | ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_dice_cubemap.jpg) |
 
+| Cubemap Horizon Output |
+| :---: |
+| ![](examples/example_world_map_horizon_cubemap.jpg) |
 
 ### Cubemap to Equirectangular Conversion
 
