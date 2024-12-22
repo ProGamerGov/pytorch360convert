@@ -41,6 +41,19 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
 def _slice_chunk(
     index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")
 ) -> torch.Tensor:
+    """
+    Generate a tensor of indices for a chunk of values.
+
+    Args:
+        index (int): The starting index for the chunk.
+        width (int): The number of indices in the chunk.
+        offset (int, optional): An offset added to the starting index, default is 0.
+        device (torch.device, optional): The device for the tensor.
+            Default: torch.device('cpu')
+
+    Returns:
+        torch.Tensor: A tensor containing the indices for the chunk.
+    """
     start = index * width + offset
     # Create a tensor of indices instead of using slice
     return torch.arange(start, start + width, dtype=torch.long, device=device)
@@ -49,6 +62,18 @@ def _slice_chunk(
 def _face_slice(
     index: int, face_w: int, device: torch.device = torch.device("cpu")
 ) -> torch.Tensor:
+    """
+    Generate a slice of indices based on the face width.
+
+    Args:
+        index (int): The starting index.
+        face_w (int): The width of the face (number of indices).
+        device (torch.device, optional): The device for the tensor.
+            Default: torch.device('cpu')
+
+    Returns:
+        torch.Tensor: A tensor containing the slice of indices.
+    """
     return _slice_chunk(index, face_w)
 
 
