@@ -693,7 +693,7 @@ def c2e(
         elif cube_format == "dict" and torch.jit.isinstance(
             cubemap, Dict[str, torch.Tensor]
         ):
-            cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}
+            cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}  # type: ignore
         elif cube_format in ["horizon", "dice"] and isinstance(cubemap, torch.Tensor):
             cubemap = cubemap.permute(1, 2, 0)
         else:
@@ -708,8 +708,8 @@ def c2e(
     elif cube_format == "dict" and torch.jit.isinstance(
         cubemap, Dict[str, torch.Tensor]
     ):
-        assert all(v.dim() == 3 for k, v in cubemap.items())
-        cube_h = cube_dict2h(cubemap)
+        assert all(v.dim() == 3 for k, v in cubemap.items())  # type: ignore[union-attr]
+        cube_h = cube_dict2h(cubemap)  # type: ignore[arg-type]
     elif cube_format == "dice" and isinstance(cubemap, torch.Tensor):
         assert len(cubemap.shape) == 3
         cube_h = cube_dice2h(cubemap)
@@ -850,7 +850,7 @@ def e2c(
             result = [r.permute(2, 0, 1) for r in result]
         elif cube_format == "dict":
             assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
-            result = {k: v.permute(2, 0, 1) for k, v in result.items()}
+            result = {k: v.permute(2, 0, 1) for k, v in result.items()}  # type: ignore[union-attr]
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)
             result = result.permute(2, 0, 1)
