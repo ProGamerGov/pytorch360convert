@@ -27,6 +27,8 @@ from pytorch360convert.pytorch360convert import (
     xyz2uv,
     xyzcube,
     xyzpers,
+    _slice_chunk,
+    _face_slice,
 )
 
 
