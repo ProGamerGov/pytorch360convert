@@ -140,7 +140,7 @@ def equirect_uvgrid(
     """
     u = torch.linspace(-torch.pi, torch.pi, steps=w, dtype=dtype, device=device)
     v = torch.linspace(torch.pi, -torch.pi, steps=h, dtype=dtype, device=device) / 2
-    grid_v, grid_u = torch.meshgrid(v, u)
+    grid_v, grid_u = torch.meshgrid(v, u, indexing="ij")
     uv = torch.stack([grid_u, grid_v], dim=-1)
     return uv
 
@@ -230,7 +230,7 @@ def xyzpers(
     x_range = torch.linspace(
         -x_max.item(), x_max.item(), steps=out_hw[1], dtype=dtype, device=device
     )
-    grid_y, grid_x = torch.meshgrid(-y_range, x_range)
+    grid_y, grid_x = torch.meshgrid(-y_range, x_range, indexing="ij")
     out[..., 0] = grid_x
     out[..., 1] = grid_y
 
