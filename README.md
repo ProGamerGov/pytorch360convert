@@ -48,7 +48,7 @@ Or you can install it from source like this:
 pip install torch
 ```
 
-Clone the repository:
+Then clone the repository:
 
 ```bash
 git clone https://github.com/ProGamerGov/pytorch360convert.git
