@@ -75,7 +75,7 @@ def xyzcube(
     Returns:
         torch.Tensor: Cube coordinates tensor of shape (face_w, face_w * 6, 3).
     """
-    out = torch.empty((face_w, face_w * 6, 3), dtype=torch.float32)
+    out = torch.empty((face_w, face_w * 6, 3), dtype=dtype, device=device)
     rng = torch.linspace(-0.5, 0.5, steps=face_w, dtype=dtype, device=device)
     x, y = torch.meshgrid(rng, -rng, indexing="xy")  # shape (face_w, face_w)
 
