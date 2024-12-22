@@ -47,13 +47,14 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     return R
 
 
-def slice_chunk(index: int, width: int, offset=0):
+def _slice_chunk(index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")) -> torch.Tensor:
     start = index * width + offset
-    return slice(start, start + width)
+    # Create a tensor of indices instead of using slice
+    return torch.arange(start, start + width, dtype=torch.long, device=device)
 
 
-def face_slice(index: int, face_w: int):
-    return slice_chunk(index, face_w)
+def _face_slice(index: int, face_w: int, device: torch.device = torch.device("cpu")) -> torch.Tensor:
+    return _slice_chunk(index, face_w)
 
 
 def xyzcube(
@@ -84,34 +85,40 @@ def xyzcube(
     y_flip = torch.flip(y, [0])
 
     # Front face (z = 0.5)
-    out[:, face_slice(Face.FRONT, face_w), Dim.X] = x
-    out[:, face_slice(Face.FRONT, face_w), Dim.Y] = y
-    out[:, face_slice(Face.FRONT, face_w), Dim.Z] = 0.5
+    front_indices = _face_slice(Face.FRONT, face_w, device)
+    out[:, front_indices, Dim.X] = x
+    out[:, front_indices, Dim.Y] = y
+    out[:, front_indices, Dim.Z] = 0.5
 
     # Right face (x = 0.5)
-    out[:, face_slice(Face.RIGHT, face_w), Dim.X] = 0.5
-    out[:, face_slice(Face.RIGHT, face_w), Dim.Y] = y
-    out[:, face_slice(Face.RIGHT, face_w), Dim.Z] = x_flip
+    right_indices = _face_slice(Face.RIGHT, face_w, device)
+    out[:, right_indices, Dim.X] = 0.5
+    out[:, right_indices, Dim.Y] = y
+    out[:, right_indices, Dim.Z] = x_flip
 
     # Back face (z = -0.5)
-    out[:, face_slice(Face.BACK, face_w), Dim.X] = x_flip
-    out[:, face_slice(Face.BACK, face_w), Dim.Y] = y
-    out[:, face_slice(Face.BACK, face_w), Dim.Z] = -0.5
+    back_indices = _face_slice(Face.BACK, face_w, device)
+    out[:, back_indices, Dim.X] = x_flip
+    out[:, back_indices, Dim.Y] = y
+    out[:, back_indices, Dim.Z] = -0.5
 
     # Left face (x = -0.5)
-    out[:, face_slice(Face.LEFT, face_w), Dim.X] = -0.5
-    out[:, face_slice(Face.LEFT, face_w), Dim.Y] = y
-    out[:, face_slice(Face.LEFT, face_w), Dim.Z] = x
+    left_indices = _face_slice(Face.LEFT, face_w, device)
+    out[:, left_indices, Dim.X] = -0.5
+    out[:, left_indices, Dim.Y] = y
+    out[:, left_indices, Dim.Z] = x
 
     # Up face (y = 0.5)
-    out[:, face_slice(Face.UP, face_w), Dim.X] = x
-    out[:, face_slice(Face.UP, face_w), Dim.Y] = 0.5
-    out[:, face_slice(Face.UP, face_w), Dim.Z] = y_flip
+    up_indices = _face_slice(Face.UP, face_w, device)
+    out[:, up_indices, Dim.X] = x
+    out[:, up_indices, Dim.Y] = 0.5
+    out[:, up_indices, Dim.Z] = y_flip
 
     # Down face (y = -0.5)
-    out[:, face_slice(Face.DOWN, face_w), Dim.X] = x
-    out[:, face_slice(Face.DOWN, face_w), Dim.Y] = -0.5
-    out[:, face_slice(Face.DOWN, face_w), Dim.Z] = y
+    down_indices = _face_slice(Face.DOWN, face_w, device)
+    out[:, down_indices, Dim.X] = x
+    out[:, down_indices, Dim.Y] = -0.5
+    out[:, down_indices, Dim.Z] = y
 
     return out
 
