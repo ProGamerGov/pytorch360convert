@@ -104,7 +104,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         offset = 0
         expected = torch.tensor([6, 7, 8], dtype=torch.long)
         result = _slice_chunk(index, width, offset)
-        torch.testing.assert_tensor_equal(result, expected)
+        torch.testing.assert_close(result, expected)
 
     def test_slice_chunk_with_offset(self) -> None:
         # Test with a non-zero offset
@@ -113,7 +113,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         offset = 1
         expected = torch.tensor([7, 8, 9], dtype=torch.long)
         result = _slice_chunk(index, width, offset)
-        torch.testing.assert_tensor_equal(result, expected)
+        torch.testing.assert_close(result, expected)
 
     def test_slice_chunk_gpu(self) -> None:
         if not torch.cuda.is_available():
@@ -123,7 +123,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         offset = 0
         expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
         result = _slice_chunk(index, width, offset)
-        torch.testing.assert_tensor_equal(result, expected)
+        torch.testing.assert_close(result, expected)
         self.assertTrue(result.is_cuda)
 
     def test_face_slice(self) -> None:
@@ -132,7 +132,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_w = 3
         expected = torch.tensor([6, 7, 8], dtype=torch.long)
         result = _face_slice(index, face_w)
-        torch.testing.assert_tensor_equal(result, expected)
+        torch.testing.assert_close(result, expected)
 
     def test_face_slice_gpu(self) -> None:
         if not torch.cuda.is_available():
@@ -142,7 +142,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_w = 3
         expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
         result = _face_slice(index, face_w)
-        torch.testing.assert_tensor_equal(result, expected)
+        torch.testing.assert_close(result, expected)
         self.assertTrue(result.is_cuda)
 
     def test_xyzcube(self) -> None:
