@@ -490,7 +490,7 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
 
 def cube_h2dict(
     cube_h: torch.Tensor,
-    face_keys: Tuple[str] = ("Front", "Right", "Back", "Left", "Up", "Down"),
+    face_keys: Optional[List[str]] = None,
 ) -> Dict[str, torch.Tensor]:
     """
     Convert a horizontal cube representation to a dictionary of cube faces.
@@ -501,32 +501,36 @@ def cube_h2dict(
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor of shape
             [w, w*6, C].
-        face_keys (Tuple[str], optional): List or Tuple of face keys in order.
+        face_keys (List[str], optional): List of face keys in order.
             Defaults to ["Front", "Right", "Back", "Left", "Up", "Down"].
 
     Returns:
         Dict[str, torch.Tensor]: Dictionary of cube faces with keys
             ["Front", "Right", "Back", "Left", "Up", "Down"].
     """
+    if face_keys is None:
+        face_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
     cube_list = cube_h2list(cube_h)
     return dict(zip(face_keys, cube_list))
 
 
 def cube_dict2h(
     cube_dict: Dict[str, torch.Tensor],
-    face_keys: List[str] = ["Front", "Right", "Back", "Left", "Up", "Down"],
+    face_keys: Optional[List[str]] = None,
 ) -> torch.Tensor:
     """
     Convert a dictionary of cube faces to a horizontal cube representation.
 
     Args:
         cube_dict (Dict[str, torch.Tensor]): Dictionary of cube faces.
-        face_keys (List[str], optional): List of face keys in order. Defaults
-            to ["Front", "Right", "Back", "Left", "Up", "Down"].
+        face_keys (List[str], optional): List of face keys in order.
+            Defaults to ["Front", "Right", "Back", "Left", "Up", "Down"].
 
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
     """
+    if face_keys is None:
+        face_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
     return cube_list2h([cube_dict[k] for k in face_keys])
 
 
