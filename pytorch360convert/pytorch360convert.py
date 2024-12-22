@@ -20,22 +20,35 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     s = torch.sin(rad)
     R = torch.diag(torch.stack([c, c, c]))
     R = R + (1.0 - c) * torch.ger(ax, ax)
-    K = torch.stack([
-        torch.stack([torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[2], ax[1]]),
-        torch.stack([ax[2], torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[0]]),
-        torch.stack([-ax[1], ax[0], torch.tensor(0.0, device=ax.device, dtype=ax.dtype)])
-    ], dim=0)
+    K = torch.stack(
+        [
+            torch.stack(
+                [torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[2], ax[1]]
+            ),
+            torch.stack(
+                [ax[2], torch.tensor(0.0, device=ax.device, dtype=ax.dtype), -ax[0]]
+            ),
+            torch.stack(
+                [-ax[1], ax[0], torch.tensor(0.0, device=ax.device, dtype=ax.dtype)]
+            ),
+        ],
+        dim=0,
+    )
     R = R + K * s
     return R
 
 
-def _slice_chunk(index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")) -> torch.Tensor:
+def _slice_chunk(
+    index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")
+) -> torch.Tensor:
     start = index * width + offset
     # Create a tensor of indices instead of using slice
     return torch.arange(start, start + width, dtype=torch.long, device=device)
 
 
-def _face_slice(index: int, face_w: int, device: torch.device = torch.device("cpu")) -> torch.Tensor:
+def _face_slice(
+    index: int, face_w: int, device: torch.device = torch.device("cpu")
+) -> torch.Tensor:
     return _slice_chunk(index, face_w)
 
 
@@ -652,7 +665,9 @@ def c2e(
     if channels_first:
         if cube_format == "list" and isinstance(cubemap, (list, tuple)):
             cubemap = [r.permute(1, 2, 0) for r in cubemap]
-        elif cube_format == "dict" and isinstance(cubemap, dict):
+        elif cube_format == "dict" and torch.jit.isinstance(
+            cubemap, Dict[str, torch.Tensor]
+        ):
             cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}
         elif cube_format in ["horizon", "dice"] and isinstance(cubemap, torch.Tensor):
             cubemap = cubemap.permute(1, 2, 0)
@@ -665,7 +680,9 @@ def c2e(
     elif cube_format == "list" and isinstance(cubemap, (list, tuple)):
         assert all([r.dim() == 3 for r in cubemap])
         cube_h = cube_list2h(cubemap)
-    elif cube_format == "dict" and isinstance(cubemap, dict):
+    elif cube_format == "dict" and torch.jit.isinstance(
+        cubemap, Dict[str, torch.Tensor]
+    ):
         assert all(v.dim() == 3 for k, v in cubemap.items())
         cube_h = cube_dict2h(cubemap)
     elif cube_format == "dice" and isinstance(cubemap, torch.Tensor):
@@ -680,11 +697,11 @@ def c2e(
     face_w = cube_h.shape[0]
     assert cube_h.shape[1] == face_w * 6
 
-    if cube_format == "horizon" and not h:
-        h = face_w if not h else h
+    if cube_format == "horizon" and h != None:
+        h = face_w if h != None else h
     else:
-        h = face_w * 2 if not h else h
-    w = face_w * 4 if not w else w
+        h = face_w * 2 if h != None else h
+    w = face_w * 4 if w != None else w
 
     assert w % 8 == 0
 
@@ -787,7 +804,9 @@ def e2c(
     out_c = sample_equirec(e_img, coor_xy, mode)  # [face_w, 6*face_w, C]
     # out_c shape: we did it directly for each pixel in the cube map
 
-    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor], None] = None
+    result: Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor], None] = (
+        None
+    )
     if cube_format == "horizon":
         result = out_c
     elif cube_format == "list" or cube_format == "stack":
@@ -805,7 +824,7 @@ def e2c(
             assert isinstance(result, (list, tuple))
             result = [r.permute(2, 0, 1) for r in result]
         elif cube_format == "dict":
-            assert isinstance(result, dict)
+            assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
             result = {k: v.permute(2, 0, 1) for k, v in result.items()}
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)
