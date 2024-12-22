@@ -3,6 +3,23 @@ from typing import Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn.functional as F
 
+from enum import IntEnum
+
+class Face(IntEnum):
+    """Face type indexing for numpy vectorization."""
+
+    FRONT = 0
+    RIGHT = 1
+    BACK = 2
+    LEFT = 3
+    UP = 4
+    DOWN = 5
+
+
+class Dim(IntEnum):
+    X = 0
+    Y = 1
+    Z = 2
 
 def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     """
@@ -29,6 +46,11 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     return R
 
 
+def slice_chunk(index: int, width: int, offset=0):
+    start = index * width + offset
+    return slice(start, start + width)
+
+
 def xyzcube(
     face_w: int,
     device: torch.device = torch.device("cpu"),
@@ -48,29 +70,46 @@ def xyzcube(
     Returns:
         torch.Tensor: Cube coordinates tensor of shape (face_w, face_w * 6, 3).
     """
+    out = torch.empty((face_w, face_w * 6, 3), dtype=torch.float32)
     rng = torch.linspace(-0.5, 0.5, steps=face_w, dtype=dtype, device=device)
-    grid_y, grid_x = torch.meshgrid(rng, -rng)  # shape (face_w, face_w)
-    grid = torch.stack([grid_x, grid_y], dim=-1)  # (face_w, face_w, 2)
+    x, y = torch.meshgrid(rng, -rng, indexing='xy')  # shape (face_w, face_w)
 
-    out = torch.zeros((face_w, face_w * 6, 3), dtype=dtype, device=device)
-    # Front
-    out[:, 0 * face_w : 1 * face_w, 0:2] = grid
-    out[:, 0 * face_w : 1 * face_w, 2] = 0.5
-    # Right
-    out[:, 1 * face_w : 2 * face_w, [2, 1]] = torch.flip(grid, [1])
-    out[:, 1 * face_w : 2 * face_w, 0] = 0.5
-    # Back
-    out[:, 2 * face_w : 3 * face_w, 0:2] = torch.flip(grid, [1])
-    out[:, 2 * face_w : 3 * face_w, 2] = -0.5
-    # Left
-    out[:, 3 * face_w : 4 * face_w, [2, 1]] = grid
-    out[:, 3 * face_w : 4 * face_w, 0] = -0.5
-    # Up
-    out[:, 4 * face_w : 5 * face_w, [0, 2]] = torch.flip(grid, [0])
-    out[:, 4 * face_w : 5 * face_w, 1] = 0.5
-    # Down
-    out[:, 5 * face_w : 6 * face_w, [0, 2]] = grid
-    out[:, 5 * face_w : 6 * face_w, 1] = -0.5
+    # Pre-compute flips
+    x_flip = torch.flip(x, [1])
+    y_flip = torch.flip(y, [0])
+
+    def face_slice(index):
+        return slice_chunk(index, face_w)
+
+    # Front face (z = 0.5)
+    out[:, face_slice(Face.FRONT), Dim.X] = x
+    out[:, face_slice(Face.FRONT), Dim.Y] = y
+    out[:, face_slice(Face.FRONT), Dim.Z] = 0.5
+
+    # Right face (x = 0.5)
+    out[:, face_slice(Face.RIGHT), Dim.X] = 0.5
+    out[:, face_slice(Face.RIGHT), Dim.Y] = y
+    out[:, face_slice(Face.RIGHT), Dim.Z] = x_flip
+
+    # Back face (z = -0.5)
+    out[:, face_slice(Face.BACK), Dim.X] = x_flip
+    out[:, face_slice(Face.BACK), Dim.Y] = y
+    out[:, face_slice(Face.BACK), Dim.Z] = -0.5
+
+    # Left face (x = -0.5)
+    out[:, face_slice(Face.LEFT), Dim.X] = -0.5
+    out[:, face_slice(Face.LEFT), Dim.Y] = y
+    out[:, face_slice(Face.LEFT), Dim.Z] = x
+
+    # Up face (y = 0.5)
+    out[:, face_slice(Face.UP), Dim.X] = x
+    out[:, face_slice(Face.UP), Dim.Y] = 0.5
+    out[:, face_slice(Face.UP), Dim.Z] = y_flip
+
+    # Down face (y = -0.5)
+    out[:, face_slice(Face.DOWN), Dim.X] = x
+    out[:, face_slice(Face.DOWN), Dim.Y] = -0.5
+    out[:, face_slice(Face.DOWN), Dim.Z] = y
 
     return out
 
