@@ -661,23 +661,23 @@ def c2e(
         mode (str, optional): Sampling interpolation mode, 'nearest' or
             'bilinear'. Default: 'bilinear'.
         cube_format (str, optional): The input 'cubemap' format. Options
-		    are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
+            are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
             The chosen 'cube_format' should correspond to the provided
             'cubemap' input.
             The list of options are:
             - 'stack' (torch.Tensor): Stack of 6 faces, in the order
-			    of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'list' (list of torch.Tensor): List of 6 faces, in the order
-				of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dict' (dict of torch.Tensor): Dictionary with keys pointing to
-			    face tensors. Dict keys are:
-				['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                face tensors. Dict keys are:
+                ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dice' (torch.Tensor): A cubemap in a 'dice' layout.
             - 'horizon' (torch.Tensor): A cubemap in a 'horizon' layout,
-			    a 1x6 grid in the order:
-				['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
-        channels_first (bool, optional): The channel format of e_img. PyTorch
-		    uses channels first. Default: 'True'
+                a 1x6 grid in the order:
+                ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+        channels_first (bool, optional): The channel format of the cubemap
+            tensor(s). PyTorch uses channels first. Default: 'True'
 
     Returns:
         torch.Tensor: A CHW equirectangular projection tensor.
@@ -793,25 +793,25 @@ def e2c(
         e_img (torch.Tensor): Input equirectangular image tensor of shape
             [C, H, W] or [H, W, C].
         face_w (int, optional): Width of each square cube shaped face.
-		    Default: 256.
+            Default: 256.
         mode (str, optional): Sampling interpolation mode, 'nearest' or
             'bilinear'. Default: 'bilinear'.
         cube_format (str, optional): The desired output cubemap format. Options
-		    are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
+            are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
             The list of options are:
             - 'stack' (torch.Tensor): Stack of 6 faces, in the order
-			    of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+        of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'list' (list of torch.Tensor): List of 6 faces, in the order
-				of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+        of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dict' (dict of torch.Tensor): Dictionary with keys pointing to
-			    face tensors. Dict keys are:
-				['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                face tensors. Dict keys are:
+               ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dice' (torch.Tensor): A cubemap in a 'dice' layout.
             - 'horizon' (torch.Tensor): A cubemap in a 'horizon' layout,
-			    a 1x6 grid in the order:
-				['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                a 1x6 grid in the order:
+        ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
         channels_first (bool, optional): The channel format of e_img. PyTorch
-		    uses channels first. Default: 'True'
+            uses channels first. Default: 'True'
 
     Returns:
         Union[torch.Tensor, List[torch.Tensor], Dict[str, torch.Tensor]]:
@@ -884,11 +884,11 @@ def e2p(
         h_deg (float): Horizontal rotation angle in degrees.
         w_deg (float): Vertical rotation angle in degrees.
         out_hw (Tuple[int, int]): Output image height and width.
-        in_rot_deg (float, optional): Input rotation angle in degrees. Defaults
-            to 0.
-        mode (str, optional): Sampling interpolation mode. Defaults to 'bilinear'.
-        channels_first (bool, optional): The channel format of e_img. Defaults
-            to 'True' for channels first.
+        in_rot_deg (float, optional): Input rotation angle in degrees.
+	    Default: 0
+        mode (str, optional): Sampling interpolation mode. Default: 'bilinear'
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+        uses channels first. Default: 'True'
 
     Returns:
         torch.Tensor: Perspective projection image tensor.
