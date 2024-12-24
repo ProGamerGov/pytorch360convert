@@ -15,14 +15,14 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 
 
 <div align="left">
- <img src="examples/basic_equirectangular.jpg" width="710px">
+ <img src="examples/basic_equirectangular.png" width="710px">
 </div>
 
 * Equirectangular format
 
 
 <div align="left">
- <img src="examples/basic_dice_cubemap.jpg" width="710px">
+ <img src="examples/basic_dice_cubemap.png" width="710px">
 </div>
 
 * Cubemap 'dice' format
