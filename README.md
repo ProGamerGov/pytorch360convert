@@ -149,7 +149,7 @@ equirectangular = c2e(
 save_tensor_as_image(equirectangular, "equirectangular.jpg")
 ```
 
-### Perspective Projection from Equirectangular
+### Equirectangular to Perspective Projection
 
 ```python
 from pytorch360convert import e2p
