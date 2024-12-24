@@ -654,7 +654,7 @@ def c2e(
         'BCHW'.
         h (int, optional): Height of the output equirectangular image. If set
             to None, <cube_face_width> * 2 will be used.
-            Default: `<cubemap_width> * 2` 
+            Default: `<cubemap_width> * 2`
         w (int, optional): Width of the output equirectangular image. If set
             to None, <cube_face_width> * 4 will be used.
             Default: `<cubemap_width> * 4`
@@ -885,7 +885,7 @@ def e2p(
         w_deg (float): Vertical rotation angle in degrees.
         out_hw (Tuple[int, int]): Output image height and width.
         in_rot_deg (float, optional): Input rotation angle in degrees.
-	    Default: 0
+            Default: 0
         mode (str, optional): Sampling interpolation mode. Default: 'bilinear'
         channels_first (bool, optional): The channel format of e_img. PyTorch
         uses channels first. Default: 'True'
