@@ -420,7 +420,7 @@ def sample_equirec(
     Sample from an equirectangular image.
 
     Args:
-        e_img (torch.Tensor): Equirectangular image tensor int the shape of:
+        e_img (torch.Tensor): Equirectangular image tensor in the shape of:
             [H, W, C].
         coor_xy (torch.Tensor): Sampling coordinates in the shape of
             [H_out, W_out, 2].
@@ -460,7 +460,7 @@ def sample_cubefaces(
     # cube_faces: [6, face_w, face_w, C]
     # We must sample according to tp (face index), coor_y, coor_x
     # First we must flatten all faces into a single big image (like cube_h)
-    # The original, code tries to do complicated padding and wrapping.
+    # The original code tries to do complicated padding and wrapping.
     # We'll try a simpler approach: we have tp that selects face.
     # We can do per-face sampling. Instead of map_coordinates
     # (tp, y, x), we know each pixel belongs to a certain face.
