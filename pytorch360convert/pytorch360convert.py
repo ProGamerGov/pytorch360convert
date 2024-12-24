@@ -87,10 +87,10 @@ def xyzcube(
 
     Args:
         face_w (int): Width of each cube face.
-        device (torch.device, optional): Device to create tensor on. Defaults
-            to torch.device('cpu').
-        dtype (torch.dtype, optional): Data type of the tensor. Defaults to
-            torch.float32.
+        device (torch.device, optional): Device to create tensor on.
+            Default: torch.device('cpu')
+        dtype (torch.dtype, optional): Data type of the tensor.
+            Default: torch.float32
 
 
     Returns:
@@ -155,10 +155,10 @@ def equirect_uvgrid(
     Args:
         h (int): Height of the grid.
         w (int): Width of the grid.
-        device (torch.device, optional): Device to create tensor on. Defaults
-            to torch.device('cpu').
-        dtype (torch.dtype, optional): Data type of the tensor. Defaults to
-            torch.float32.
+        device (torch.device, optional): Device to create tensor on.
+            Default: torch.device('cpu')
+        dtype (torch.dtype, optional): Data type of the tensor.
+            Default: torch.float32
 
     Returns:
         torch.Tensor: UV grid of shape (h, w, 2).
@@ -182,10 +182,10 @@ def equirect_facetype(
     Args:
         h (int): Height of the grid.
         w (int): Width of the grid.
-        device (torch.device, optional): Device to create tensor on. Defaults
-            to torch.device('cpu').
-        dtype (torch.dtype, optional): Data type of the tensor. Defaults to
-            torch.float32.
+        device (torch.device, optional): Device to create tensor on.
+            Default: torch.device('cpu')
+        dtype (torch.dtype, optional): Data type of the tensor.
+            Default: torch.float32
 
     Returns:
         torch.Tensor: Face type tensor of shape (h, w) with integer face
@@ -232,10 +232,10 @@ def xyzpers(
         v (float): Vertical rotation angle in radians.
         out_hw (Tuple[int, int]): Output height and width.
         in_rot (torch.Tensor): Input rotation angle in radians.
-        device (torch.device, optional): Device to create tensor on. Defaults
-            to torch.device('cpu').
-        dtype (torch.dtype, optional): Data type of the tensor. Defaults to
-            torch.float32.
+        device (torch.device, optional): Device to create tensor on.
+            Default: torch.device('cpu')
+        dtype (torch.dtype, optional): Data type of the tensor.
+            Default: torch.float32
 
     Returns:
         torch.Tensor: Perspective projection coordinates tensor.
@@ -363,9 +363,9 @@ def grid_sample_wrap(
         coor_x (torch.Tensor): X coordinates for sampling.
         coor_y (torch.Tensor): Y coordinates for sampling.
         mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Defaults to 'bilinear'.
+            'bilinear'. Default: 'bilinear'.
         padding_mode (str, optional): Sampling interpolation mode.
-            Default: 'bilinear'
+            Default: 'border'
 
     Returns:
         torch.Tensor: Sampled image tensor.
@@ -420,11 +420,12 @@ def sample_equirec(
     Sample from an equirectangular image.
 
     Args:
-        e_img (torch.Tensor): Equirectangular image tensor of shape [H, W, C].
-        coor_xy (torch.Tensor): Sampling coordinates of shape
+        e_img (torch.Tensor): Equirectangular image tensor int the shape of:
+            [H, W, C].
+        coor_xy (torch.Tensor): Sampling coordinates in the shape of
             [H_out, W_out, 2].
         mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Defaults to 'bilinear'.
+            'bilinear'. Default: 'bilinear'
 
     Returns:
         torch.Tensor: Sampled image tensor.
@@ -445,13 +446,13 @@ def sample_cubefaces(
     Sample from cube faces.
 
     Args:
-        cube_faces (torch.Tensor): Cube faces tensor of shape
+        cube_faces (torch.Tensor): Cube faces tensor in the shape of:
             [6, face_w, face_w, C].
         tp (torch.Tensor): Face type tensor.
         coor_y (torch.Tensor): Y coordinates for sampling.
         coor_x (torch.Tensor): X coordinates for sampling.
         mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Defaults to 'bilinear'.
+            'bilinear'. Default: 'bilinear'
 
     Returns:
         torch.Tensor: Sampled cube faces tensor.
@@ -498,8 +499,8 @@ def cube_h2list(cube_h: torch.Tensor) -> List[torch.Tensor]:
     Convert a horizontal cube representation to a list of cube faces.
 
     Args:
-        cube_h (torch.Tensor): Horizontal cube representation tensor of shape
-            [w, w*6, C].
+        cube_h (torch.Tensor): Horizontal cube representation tensor in the
+            shape of: [w, w*6, C].
 
     Returns:
         List[torch.Tensor]: List of cube face tensors in the order of:
@@ -537,10 +538,10 @@ def cube_h2dict(
     dice layout: 3*face_w x 4*face_w
 
     Args:
-        cube_h (torch.Tensor): Horizontal cube representation tensor of shape
-            [w, w*6, C].
-        face_keys (List[str], optional): List of face keys in order.
-            Defaults to ["Front", "Right", "Back", "Left", "Up", "Down"].
+        cube_h (torch.Tensor): Horizontal cube representation tensor in the
+            shape of: [w, w*6, C].
+        face_keys (list of str, optional): List of face keys in order.
+            Default: '["Front", "Right", "Back", "Left", "Up", "Down"]'
 
     Returns:
         Dict[str, torch.Tensor]: Dictionary of cube faces with keys
@@ -561,8 +562,8 @@ def cube_dict2h(
 
     Args:
         cube_dict (Dict[str, torch.Tensor]): Dictionary of cube faces.
-        face_keys (List[str], optional): List of face keys in order.
-            Defaults to ["Front", "Right", "Back", "Left", "Up", "Down"].
+        face_keys (list of str, optional): List of face keys in order.
+            Default: '["Front", "Right", "Back", "Left", "Up", "Down"]'
 
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
@@ -586,11 +587,12 @@ def cube_h2dice(cube_h: torch.Tensor) -> torch.Tensor:
        └────┴────┴────┴────┘
 
     Args:
-        cube_h (torch.Tensor): Horizontal cube representation tensor of shape
-            [w, w*6, C].
+        cube_h (torch.Tensor): Horizontal cube representation tensor in the
+            shape of: [w, w*6, C].
 
     Returns:
-        torch.Tensor: Dice layout cube representation tensor of shape [w*3, w*4, C].
+        torch.Tensor: Dice layout cube representation tensor in the shape of:
+            [w*3, w*4, C].
     """
     w = cube_h.shape[0]
     cube_dice = torch.zeros(
@@ -618,11 +620,12 @@ def cube_dice2h(cube_dice: torch.Tensor) -> torch.Tensor:
        └────┴────┴────┴────┘
 
     Args:
-        cube_dice (torch.Tensor): Dice layout cube representation tensor of shape
-            [w*3, w*4, C].
+        cube_dice (torch.Tensor): Dice layout cube representation tensor in the
+            shape of: [w*3, w*4, C].
 
     Returns:
-        torch.Tensor: Horizontal cube representation tensor of shape [w, w*6, C].
+        torch.Tensor: Horizontal cube representation tensor in the shape of:
+            [w, w*6, C].
     """
     w = cube_dice.shape[0] // 3
     cube_h = torch.zeros(
