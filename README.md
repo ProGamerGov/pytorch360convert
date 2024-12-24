@@ -15,14 +15,14 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 
 
 <div align="left">
- <img src="examples/basic_equirectangular.jpg" width="710px">
+ <img src="examples/basic_equirectangular.png" width="710px">
 </div>
 
 * Equirectangular format
 
 
 <div align="left">
- <img src="examples/basic_dice_cubemap.jpg" width="710px">
+ <img src="examples/basic_dice_cubemap.png" width="710px">
 </div>
 
 * Cubemap 'dice' format
@@ -140,8 +140,6 @@ cubemap = load_image_to_tensor("dice_cubemap.jpg")
 # Convert cubemap back to equirectangular
 equirectangular = c2e(
     cubemap,              # Cubemap tensor(s)
-    h=2048,               # Output height
-    w=4096,               # Output width
     mode='bilinear',      # Sampling interpolation
     cube_format='dice'    # Input cubemap layout
 )
@@ -149,7 +147,7 @@ equirectangular = c2e(
 save_tensor_as_image(equirectangular, "equirectangular.jpg")
 ```
 
-### Perspective Projection from Equirectangular
+### Equirectangular to Perspective Projection
 
 ```python
 from pytorch360convert import e2p
