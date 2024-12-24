@@ -140,8 +140,6 @@ cubemap = load_image_to_tensor("dice_cubemap.jpg")
 # Convert cubemap back to equirectangular
 equirectangular = c2e(
     cubemap,              # Cubemap tensor(s)
-    h=2048,               # Output height
-    w=4096,               # Output width
     mode='bilinear',      # Sampling interpolation
     cube_format='dice'    # Input cubemap layout
 )
