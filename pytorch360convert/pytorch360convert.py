@@ -679,7 +679,7 @@ def c2e(
             - 'horizon' (torch.Tensor): A cubemap in a 'horizon' layout,
                 a 1x6 grid in the order:
                 ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
-        channels_first (bool, optional): The channel format of the cubemap
+        channels_first (bool, optional): The channel format used by the cubemap
             tensor(s). PyTorch uses channels first. Default: 'True'
 
     Returns:
