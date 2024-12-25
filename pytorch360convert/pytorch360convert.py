@@ -362,8 +362,8 @@ def grid_sample_wrap(
         image (torch.Tensor): Input image tensor of shape [H, W, C].
         coor_x (torch.Tensor): X coordinates for sampling.
         coor_y (torch.Tensor): Y coordinates for sampling.
-        mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Default: 'bilinear'.
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
         padding_mode (str, optional): Sampling interpolation mode.
             Default: 'border'
 
@@ -424,8 +424,8 @@ def sample_equirec(
             [H, W, C].
         coor_xy (torch.Tensor): Sampling coordinates in the shape of
             [H_out, W_out, 2].
-        mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Default: 'bilinear'
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
 
     Returns:
         torch.Tensor: Sampled image tensor.
@@ -661,8 +661,8 @@ def c2e(
         w (int, optional): Width of the output equirectangular image. If set
             to None, <cube_face_width> * 4 will be used.
             Default: `<cubemap_width> * 4`
-        mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Default: 'bilinear'.
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
         cube_format (str, optional): The input 'cubemap' format. Options
             are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
             The chosen 'cube_format' should correspond to the provided
@@ -797,8 +797,8 @@ def e2c(
             [C, H, W] or [H, W, C].
         face_w (int, optional): Width of each square cube shaped face.
             Default: 256.
-        mode (str, optional): Sampling interpolation mode, 'nearest' or
-            'bilinear'. Default: 'bilinear'.
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
         cube_format (str, optional): The desired output cubemap format. Options
             are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
             The list of options are:
@@ -889,9 +889,10 @@ def e2p(
         out_hw (Tuple[int, int]): Output image height and width.
         in_rot_deg (float, optional): Input rotation angle in degrees.
             Default: 0
-        mode (str, optional): Sampling interpolation mode. Default: 'bilinear'
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
         channels_first (bool, optional): The channel format of e_img. PyTorch
-        uses channels first. Default: 'True'
+            uses channels first. Default: 'True'
 
     Returns:
         torch.Tensor: Perspective projection image tensor.
