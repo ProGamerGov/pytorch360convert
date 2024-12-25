@@ -803,16 +803,16 @@ def e2c(
             are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
             The list of options are:
             - 'stack' (torch.Tensor): Stack of 6 faces, in the order
-        of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'list' (list of torch.Tensor): List of 6 faces, in the order
-        of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dict' (dict of torch.Tensor): Dictionary with keys pointing to
                 face tensors. Dict keys are:
-               ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dice' (torch.Tensor): A cubemap in a 'dice' layout.
             - 'horizon' (torch.Tensor): A cubemap in a 'horizon' layout,
                 a 1x6 grid in the order:
-        ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
         channels_first (bool, optional): The channel format of e_img. PyTorch
             uses channels first. Default: 'True'
 
