@@ -230,7 +230,7 @@ def xyzpers(
         v_fov (torch.Tensor): Vertical field of view in radians.
         u (float): Horizontal rotation angle in radians.
         v (float): Vertical rotation angle in radians.
-        out_hw (Tuple[int, int]): Output height and width.
+        out_hw (tuple of int): Output height and width.
         in_rot (torch.Tensor): Input rotation angle in radians.
         device (torch.device, optional): Device to create tensor on.
             Default: torch.device('cpu')
@@ -515,8 +515,8 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     Convert a list of cube faces to a horizontal cube representation.
 
     Args:
-        cube_list (List[torch.Tensor]): List of cube face tensors, in order of
-            ['Front', 'Right', 'Back', 'Left', 'Up', 'Down']
+        cube_list (list of torch.Tensor): List of cube face tensors, in order
+            of ['Front', 'Right', 'Back', 'Left', 'Up', 'Down']
 
     Returns:
         torch.Tensor: Horizontal cube representation tensor.
@@ -544,7 +544,7 @@ def cube_h2dict(
             Default: '["Front", "Right", "Back", "Left", "Up", "Down"]'
 
     Returns:
-        Dict[str, torch.Tensor]: Dictionary of cube faces with keys
+        Dict[str, torch.Tensor]: Dictionary of cube faces with keys:
             ["Front", "Right", "Back", "Left", "Up", "Down"].
     """
     if face_keys is None:
@@ -561,7 +561,7 @@ def cube_dict2h(
     Convert a dictionary of cube faces to a horizontal cube representation.
 
     Args:
-        cube_dict (Dict[str, torch.Tensor]): Dictionary of cube faces.
+        cube_dict (dict of str to torch.Tensor): Dictionary of cube faces.
         face_keys (list of str, optional): List of face keys in order.
             Default: '["Front", "Right", "Back", "Left", "Up", "Down"]'
 
@@ -803,16 +803,16 @@ def e2c(
             are 'dict', 'list', 'horizon', 'stack', and 'dice'. Default: 'dice'
             The list of options are:
             - 'stack' (torch.Tensor): Stack of 6 faces, in the order
-        of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'list' (list of torch.Tensor): List of 6 faces, in the order
-        of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dict' (dict of torch.Tensor): Dictionary with keys pointing to
                 face tensors. Dict keys are:
-               ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
             - 'dice' (torch.Tensor): A cubemap in a 'dice' layout.
             - 'horizon' (torch.Tensor): A cubemap in a 'horizon' layout,
                 a 1x6 grid in the order:
-        ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
+                ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].
         channels_first (bool, optional): The channel format of e_img. PyTorch
             uses channels first. Default: 'True'
 
