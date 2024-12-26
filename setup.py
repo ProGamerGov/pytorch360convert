@@ -8,6 +8,19 @@ exec(open("pytorch360convert/version.py").read())
 
 # Convert relative image links to full links for PyPI
 def _relative_to_full_link(long_description: str) -> str:
+    """
+    Converts relative image links in a README to full GitHub URLs.
+
+    This function replaces relative image links (e.g., in <img> tags and
+    Markdown ![]() syntax) with their corresponding full GitHub URLs, appending
+    `?raw=true` for direct access to raw images.
+
+    Args:
+        long_description (str): The text containing relative image links.
+
+    Returns:
+        str: The modified text with full image URLs.
+    """
     import re
 
     # Base URL for raw GitHub links
