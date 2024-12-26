@@ -16,7 +16,7 @@ def _relative_to_full_link(long_description: str) -> str:
     `?raw=true` for direct access to raw images.
 
     Links are only replaced if they point to the 'examples' directory, and are
-    in the format of: `<img src="examples/<image.extension>">` or 
+    in the format of: `<img src="examples/<image.extension>">` or
     `![](examples/<image.extension>)`.
 
     Args:
