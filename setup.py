@@ -5,6 +5,7 @@ from setuptools import find_packages, setup
 # Load the current project version
 exec(open("pytorch360convert/version.py").read())
 
+
 # Convert relative image links to full links for PyPI
 def _relative_to_full_link(long_description: str) -> str:
     import re
