@@ -103,6 +103,19 @@ def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
         )
         return expected_output
 
+def _get_e2c_4x4_exact_tensor() -> torch.Tensor:
+    f = [[1.0, 1.2951672077178955, 1.7048327922821045, 2.0]] * 4
+    r = [[2.0, 2.2951672077178955, 2.7048325538635254, 3.0]] * 4
+    b = [[3.0, 3.0, 3.0, 0.0]] * 4
+    l = [[0.0, 0.29516735672950745, 0.7048328518867493, 1.0]] * 4
+    u = [[0.0, 3.0, 3.0, 3.0],
+        [0.29516735672950745, 0.0, 3.0, 2.7048325538635254],
+        [0.7048328518867493, 1.0, 2.0, 2.2951672077178955],
+        [1.0, 1.2951672077178955, 1.7048327922821045, 2.0]]
+    d = u[::-1]
+    expected_out = torch.stack([torch.tensor(f).repeat(3,1,1), torch.tensor(r).repeat(3,1,1), torch.tensor(b).repeat(3,1,1), torch.tensor(l).repeat(3,1,1), torch.tensor(u).repeat(3,1,1), torch.tensor(d).repeat(3,1,1)])
+    return expected_out
+
 
 class TestFunctionsBaseTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -1144,3 +1157,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
         x_input = _create_dice_layout(x_input, tile_w, tile_w)
         output_cubic_tensor = c2e(x_input, mode="bilinear", cube_format="dice")
         self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
+
+    def test_e2c_stack_exact(self) -> None:
+        x_input = torch.arange(0, 4).repeat(3,2,1).float()
+        output_tensor = e2c(x_input, face_w=4, mode='bilinear', cube_format='stack')
+        expected_output = _get_e2c_4x4_exact_tensor()
+        self.assertTrue(torch.allclose(output_tensor, expected_output))
