@@ -734,10 +734,7 @@ def c2e(
     face_w = cube_h.shape[0]
     assert cube_h.shape[1] == face_w * 6
 
-    if cube_format == "horizon" and h is None:
-        h = face_w if h is None else h
-    else:
-        h = face_w * 2 if h is None else h
+    h = face_w * 2 if h is None else h
     w = face_w * 4 if w is None else w
 
     assert w % 8 == 0
