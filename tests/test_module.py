@@ -69,6 +69,18 @@ def _create_test_faces(face_height: int = 512, face_width: int = 512) -> torch.T
     return faces
 
 
+def _create_dice_layout(faces: torch.Tensor, face_h: int = 512, face_w: int = 512) -> torch.Tensor:
+    H, W = face_size
+    cube = torch.zeros((3, 3 * H, 4 * W))
+    cube[:, 0:1*H, W:2*W] = faces[4]
+    cube[:, 1*H:2*H, 0:W] = faces[3]
+    cube[:, 1*H:2*H, W:2*W] = faces[0]
+    cube[:, 1*H:2*H, 2*W:3*W] = faces[1]
+    cube[:, 1*H:2*H, 3*W:4*W] = faces[2]
+    cube[:, 2*H:3*H, W:2*W] = faces[5]
+    return cube
+
+
 def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
         a = 0.4000000059604645
         b = 0.6000000238418579
@@ -1123,4 +1135,12 @@ class TestFunctionsBaseTest(unittest.TestCase):
         x_dict = {k: x_input[i] for i, k in zip(range(6), dict_keys)}
         x_input_horizon = torch.cat([ x_dict["Left"], x_dict["Front"], x_dict["Right"], x_dict["Back"],  x_dict["Up"], x_dict["Down"]], 2)
         output_cubic_tensor = c2e(x_input_horizon, mode="bilinear", cube_format="horizon")
+        self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
+
+    def test_c2e_dice_exact(self) -> None:
+        expected_output = _get_c2e_4x4_exact_tensor()
+        tile_w = 4
+        x_input = _create_test_faces(tile_w, tile_w)
+        x_input = _create_dice_layout(x_input, tile_w, tile_w)
+        output_cubic_tensor = c2e(x_input, mode="bilinear", cube_format="dice")
         self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
