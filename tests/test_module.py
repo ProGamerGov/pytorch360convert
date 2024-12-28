@@ -69,51 +69,63 @@ def _create_test_faces(face_height: int = 512, face_width: int = 512) -> torch.T
     return faces
 
 
-def _create_dice_layout(faces: torch.Tensor, face_h: int = 512, face_w: int = 512) -> torch.Tensor:
-    H, W = face_size
+def _create_dice_layout(
+    faces: torch.Tensor, face_h: int = 512, face_w: int = 512
+) -> torch.Tensor:
+    H, W = face_h, face_w
     cube = torch.zeros((3, 3 * H, 4 * W))
-    cube[:, 0:1*H, W:2*W] = faces[4]
-    cube[:, 1*H:2*H, 0:W] = faces[3]
-    cube[:, 1*H:2*H, W:2*W] = faces[0]
-    cube[:, 1*H:2*H, 2*W:3*W] = faces[1]
-    cube[:, 1*H:2*H, 3*W:4*W] = faces[2]
-    cube[:, 2*H:3*H, W:2*W] = faces[5]
+    cube[:, 0 : 1 * H, W : 2 * W] = faces[4]
+    cube[:, 1 * H : 2 * H, 0:W] = faces[3]
+    cube[:, 1 * H : 2 * H, W : 2 * W] = faces[0]
+    cube[:, 1 * H : 2 * H, 2 * W : 3 * W] = faces[1]
+    cube[:, 1 * H : 2 * H, 3 * W : 4 * W] = faces[2]
+    cube[:, 2 * H : 3 * H, W : 2 * W] = faces[5]
     return cube
 
 
 def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
-        a = 0.4000000059604645
-        b = 0.6000000238418579
-        c = 0.6309404969215393
-        d = 0.0000
-        e = 0.09061708301305771
-        f = 0.20000000298023224
-        g = 0.36016160249710083
+    a = 0.4000000059604645
+    b = 0.6000000238418579
+    c = 0.6309404969215393
+    d = 0.0000
+    e = 0.09061708301305771
+    f = 0.20000000298023224
+    g = 0.36016160249710083
 
-        expected_middle = (
-            [a] * 2 + [b] * 3 + [c] + [d] * 3 + [e] + [f] * 3 + [g] + [a] * 2
-        )
-        expected_middle = torch.tensor(expected_middle)
-        expected_output = torch.zeros(8, 16)
-        expected_output[0:2] = 0.800000011920929
-        expected_output[2:6] = expected_middle
-        expected_output[6:8] = 1.0000
-        expected_output = torch.stack(
-            [expected_output, expected_output, expected_output], dim=0
-        )
-        return expected_output
+    expected_middle = [a] * 2 + [b] * 3 + [c] + [d] * 3 + [e] + [f] * 3 + [g] + [a] * 2
+    expected_middle = torch.tensor(expected_middle)
+    expected_output = torch.zeros(8, 16)
+    expected_output[0:2] = 0.800000011920929
+    expected_output[2:6] = expected_middle
+    expected_output[6:8] = 1.0000
+    expected_output = torch.stack(
+        [expected_output, expected_output, expected_output], dim=0
+    )
+    return expected_output
+
 
 def _get_e2c_4x4_exact_tensor() -> torch.Tensor:
     f = [[1.0, 1.2951672077178955, 1.7048327922821045, 2.0]] * 4
     r = [[2.0, 2.2951672077178955, 2.7048325538635254, 3.0]] * 4
     b = [[3.0, 3.0, 3.0, 0.0]] * 4
     l = [[0.0, 0.29516735672950745, 0.7048328518867493, 1.0]] * 4
-    u = [[0.0, 3.0, 3.0, 3.0],
+    u = [
+        [0.0, 3.0, 3.0, 3.0],
         [0.29516735672950745, 0.0, 3.0, 2.7048325538635254],
         [0.7048328518867493, 1.0, 2.0, 2.2951672077178955],
-        [1.0, 1.2951672077178955, 1.7048327922821045, 2.0]]
+        [1.0, 1.2951672077178955, 1.7048327922821045, 2.0],
+    ]
     d = u[::-1]
-    expected_out = torch.stack([torch.tensor(f).repeat(3,1,1), torch.tensor(r).repeat(3,1,1), torch.tensor(b).repeat(3,1,1), torch.tensor(l).repeat(3,1,1), torch.tensor(u).repeat(3,1,1), torch.tensor(d).repeat(3,1,1)])
+    expected_out = torch.stack(
+        [
+            torch.tensor(f).repeat(3, 1, 1),
+            torch.tensor(r).repeat(3, 1, 1),
+            torch.tensor(b).repeat(3, 1, 1),
+            torch.tensor(l).repeat(3, 1, 1),
+            torch.tensor(u).repeat(3, 1, 1),
+            torch.tensor(d).repeat(3, 1, 1),
+        ]
+    )
     return expected_out
 
 
@@ -1146,8 +1158,20 @@ class TestFunctionsBaseTest(unittest.TestCase):
         x_input = _create_test_faces(tile_w, tile_w)
         dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
         x_dict = {k: x_input[i] for i, k in zip(range(6), dict_keys)}
-        x_input_horizon = torch.cat([ x_dict["Left"], x_dict["Front"], x_dict["Right"], x_dict["Back"],  x_dict["Up"], x_dict["Down"]], 2)
-        output_cubic_tensor = c2e(x_input_horizon, mode="bilinear", cube_format="horizon")
+        x_input_horizon = torch.cat(
+            [
+                x_dict["Left"],
+                x_dict["Front"],
+                x_dict["Right"],
+                x_dict["Back"],
+                x_dict["Up"],
+                x_dict["Down"],
+            ],
+            2,
+        )
+        output_cubic_tensor = c2e(
+            x_input_horizon, mode="bilinear", cube_format="horizon"
+        )
         self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
 
     def test_c2e_dice_exact(self) -> None:
@@ -1159,7 +1183,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
 
     def test_e2c_stack_exact(self) -> None:
-        x_input = torch.arange(0, 4).repeat(3,2,1).float()
-        output_tensor = e2c(x_input, face_w=4, mode='bilinear', cube_format='stack')
+        x_input = torch.arange(0, 4).repeat(3, 2, 1).float()
+        output_tensor = e2c(x_input, face_w=4, mode="bilinear", cube_format="stack")
         expected_output = _get_e2c_4x4_exact_tensor()
-        self.assertTrue(torch.allclose(output_tensor, expected_output))
+        self.assertTrue(torch.allclose(output_tensor, expected_output))  # type: ignore[arg-type]
