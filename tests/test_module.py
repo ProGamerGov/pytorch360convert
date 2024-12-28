@@ -69,6 +69,29 @@ def _create_test_faces(face_height: int = 512, face_width: int = 512) -> torch.T
     return faces
 
 
+def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
+        a = 0.4000000059604645
+        b = 0.6000000238418579
+        c = 0.6309404969215393
+        d = 0.0000
+        e = 0.09061708301305771
+        f = 0.20000000298023224
+        g = 0.36016160249710083
+
+        expected_middle = (
+            [a] * 2 + [b] * 3 + [c] + [d] * 3 + [e] + [f] * 3 + [g] + [a] * 2
+        )
+        expected_middle = torch.tensor(expected_middle)
+        expected_output = torch.zeros(8, 16)
+        expected_output[0:2] = 0.800000011920929
+        expected_output[2:6] = expected_middle
+        expected_output[6:8] = 1.0000
+        expected_output = torch.stack(
+            [expected_output, expected_output, expected_output], dim=0
+        )
+        return expected_output
+
+
 class TestFunctionsBaseTest(unittest.TestCase):
     def setUp(self) -> None:
         seed = 1234
@@ -1066,3 +1089,28 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         result = e2p_jit(e_img, fov_deg, h_deg, w_deg, out_hw)
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+
+    def test_c2e_stack_exact(self) -> None:
+        expected_output = _get_c2e_4x4_exact_tensor()
+        tile_w = 4
+        x_input = _create_test_faces(tile_w, tile_w)
+        output_cubic_tensor = c2e(x_input, mode="bilinear", cube_format="stack")
+        self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
+
+    def test_c2e_list_exact(self) -> None:
+        expected_output = _get_c2e_4x4_exact_tensor()
+        tile_w = 4
+        x_input = _create_test_faces(tile_w, tile_w)
+        dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
+        x_input_list = [x_input[i] for i in range(6)]
+        output_cubic_tensor = c2e(x_input_list, mode="bilinear", cube_format="list")
+        self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
+
+    def test_c2e_dict_exact(self) -> None:
+        expected_output = _get_c2e_4x4_exact_tensor()
+        tile_w = 4
+        x_input = _create_test_faces(tile_w, tile_w)
+        dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
+        x_input_dict = {k: x_input[i] for i, k in zip(range(6), dict_keys)}
+        output_cubic_tensor = c2e(x_input_dict, mode="bilinear", cube_format="dict")
+        self.assertTrue(torch.allclose(output_cubic_tensor, expected_output))
