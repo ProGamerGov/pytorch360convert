@@ -6,9 +6,51 @@ from setuptools import find_packages, setup
 exec(open("pytorch360convert/version.py").read())
 
 
+# Convert relative image links to full links for PyPI
+def _relative_to_full_link(long_description: str) -> str:
+    """
+    Converts relative image links in a README to full GitHub URLs.
+
+    This function replaces relative image links (e.g., in <img> tags and
+    Markdown ![]() syntax) with their corresponding full GitHub URLs, appending
+    `?raw=true` for direct access to raw images.
+
+    Links are only replaced if they point to the 'examples' directory, and are
+    in the format of: `<img src="examples/<image.extension>">` or
+    `![](examples/<image.extension>)`.
+
+    Args:
+        long_description (str): The text containing relative image links.
+
+    Returns:
+        str: The modified text with full image URLs.
+    """
+    import re
+
+    # Base URL for raw GitHub links
+    github_base_url = "https://github.com/ProGamerGov/pytorch360convert/raw/main/"
+
+    # Replace relative links in <img src="examples/...">
+    long_description = re.sub(
+        r'(<img\s+src="(examples/[\w\-/\.]+)")',
+        lambda match: f'<img src="{github_base_url}{match.group(2)}?raw=true"',
+        long_description,
+    )
+
+    # Replace relative links in ![](examples/...)
+    long_description = re.sub(
+        r'(!\[\]\((examples/[\w\-/\.]+)\))',
+        lambda match: f'![]({github_base_url}{match.group(2)}?raw=true)',
+        long_description,
+    )
+
+    return long_description
+
+
 # Use README.md as the long description
 with open("README.md", "r") as fh:
     long_description = fh.read()
+long_description = _relative_to_full_link(long_description)
 
 setup(
     name="pytorch360convert",
