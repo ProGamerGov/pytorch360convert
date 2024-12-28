@@ -28,21 +28,22 @@ def _relative_to_full_link(long_description: str) -> str:
     import re
 
     # Base URL for raw GitHub links
-    github_base_url = "https://github.com/ProGamerGov/pytorch360convert/blob/main/"
+    github_base_url = "https://github.com/ProGamerGov/pytorch360convert/raw/main/"
 
     # Replace relative links in <img src="examples/...">
     long_description = re.sub(
         r'(<img\s+src="(examples/[\w\-/\.]+)")',
-        lambda match: f"{github_base_url}{match.group(2)}?raw=true",
+        lambda match: f'<img src="{github_base_url}{match.group(2)}?raw=true"',
         long_description,
     )
 
     # Replace relative links in ![](examples/...)
     long_description = re.sub(
-        r"(!\[\]\((examples/[\w\-/\.]+)\))",
-        lambda match: f"{github_base_url}{match.group(2)}?raw=true",
+        r'(!\[\]\((examples/[\w\-/\.]+)\))',
+        lambda match: f'![]({github_base_url}{match.group(2)}?raw=true)',
         long_description,
     )
+
     return long_description
 
 

@@ -651,10 +651,10 @@ def c2e(
 
     Args:
         cubemap (torch.Tensor, list of torch.Tensor, or dict of torch.Tensor):
-        Cubemap image tensor, list of tensors, or dict of tensors. Note that
-        tensors should be in the shape of: 'CHW', except for when
-        `cube_format = 'stack'`, in which case a batch dimension is present
-        'BCHW'.
+            Cubemap image tensor, list of tensors, or dict of tensors. Note
+            that tensors should be in the shape of: 'CHW', except for when
+            `cube_format = 'stack'`, in which case a batch dimension is
+            present 'BCHW'.
         h (int, optional): Height of the output equirectangular image. If set
             to None, <cube_face_width> * 2 will be used.
             Default: `<cubemap_width> * 2`
@@ -734,10 +734,7 @@ def c2e(
     face_w = cube_h.shape[0]
     assert cube_h.shape[1] == face_w * 6
 
-    if cube_format == "horizon" and h is None:
-        h = face_w if h is None else h
-    else:
-        h = face_w * 2 if h is None else h
+    h = face_w * 2 if h is None else h
     w = face_w * 4 if w is None else w
 
     assert w % 8 == 0
