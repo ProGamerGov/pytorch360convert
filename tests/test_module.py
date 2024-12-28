@@ -1156,19 +1156,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         expected_output = _get_c2e_4x4_exact_tensor()
         tile_w = 4
         x_input = _create_test_faces(tile_w, tile_w)
-        dict_keys = ["Front", "Right", "Back", "Left", "Up", "Down"]
-        x_dict = {k: x_input[i] for i, k in zip(range(6), dict_keys)}
-        x_input_horizon = torch.cat(
-            [
-                x_dict["Left"],
-                x_dict["Front"],
-                x_dict["Right"],
-                x_dict["Back"],
-                x_dict["Up"],
-                x_dict["Down"],
-            ],
-            2,
-        )
+        x_input_horizon = torch.cat([x_input[i] for i in range(6)], 2)
         output_cubic_tensor = c2e(
             x_input_horizon, mode="bilinear", cube_format="horizon"
         )
