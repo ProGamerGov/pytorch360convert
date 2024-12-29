@@ -31,7 +31,7 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 ## 🔧 Requirements
 
 - Python 3.7+
-- PyTorch
+- [PyTorch](https://pytorch.org/)
 
 
 ## 📦 Installation
