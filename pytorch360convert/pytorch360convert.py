@@ -929,3 +929,97 @@ def e2p(
     # Convert back to CHW if required
     pers_img = pers_img.permute(2, 0, 1) if channels_first else pers_img
     return pers_img
+
+
+def e2e(
+    e_img: torch.Tensor,
+    roll: float = 0.0,
+    h_deg: float = 0.0,
+    w_deg: float = 0.0,
+    mode: str = "bilinear",
+    channels_first: bool = True,
+) -> torch.Tensor:
+    """
+    Rotate an equirectangular image along one or more axes (roll, pitch, and yaw)
+    to produce a roll, horizontal shift, or vertical shift.
+
+    Args:
+        e_img (torch.Tensor): Input equirectangular image tensor in the shape
+            of: [C, H, W] or [H, W, C].
+        roll (float, optional): Roll angle in degrees. Rotates the image along
+            the x-axis. Default: 0.0
+        h_deg (float, optional): Pitch angle in degrees (up/down). Rotates the
+            image along the y-axis to produce a vertical shift. Default: 0.0
+        w_deg (float, optional): Yaw angle in degrees (left/right). Rotates the
+            image along the z-axis to produce a horizontal shift. Default: 0.0
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'
+        channels_first (bool, optional): Whether the input tensor is in
+            channels first format. Default: True
+
+    Returns:
+        torch.Tensor: Rotated equirectangular image.
+    """
+
+    roll = roll
+    pitch = h_deg
+    yaw = w_deg
+
+    assert e_img.dim() == 3
+
+    # Ensure image is in HWC format for processing
+    if channels_first:
+        e_img = e_img.permute(1, 2, 0)
+
+    # Convert angles to radians
+    roll_rad = torch.tensor(
+        roll * torch.pi / 180.0, device=e_img.device, dtype=e_img.dtype
+    )
+    pitch_rad = torch.tensor(
+        pitch * torch.pi / 180.0, device=e_img.device, dtype=e_img.dtype
+    )
+    yaw_rad = torch.tensor(
+        yaw * torch.pi / 180.0, device=e_img.device, dtype=e_img.dtype
+    )
+
+    h, w = e_img.shape[:2]
+
+    # Create base coordinates for the output image
+    y_range = torch.linspace(0, h - 1, h, device=e_img.device, dtype=e_img.dtype)
+    x_range = torch.linspace(0, w - 1, w, device=e_img.device, dtype=e_img.dtype)
+    grid_y, grid_x = torch.meshgrid(y_range, x_range, indexing="ij")
+
+    # Convert pixel coordinates to spherical coordinates
+    uv = coor2uv(torch.stack([grid_x, grid_y], dim=-1), h, w)
+
+    # Convert to unit vectors on sphere
+    xyz = uv2unitxyz(uv)
+
+    # Create rotation matrices
+    Rx = rotation_matrix(
+        roll_rad, torch.tensor([1.0, 0.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+    )
+    Ry = rotation_matrix(
+        yaw_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+    )
+    Rz = rotation_matrix(
+        pitch_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
+    )
+
+    # Apply rotations: first roll, then pitch, then yaw
+    xyz_rot = xyz @ Rx @ Ry @ Rz
+
+    # Convert back to UV coordinates
+    uv_rot = xyz2uv(xyz_rot)
+
+    # Convert UV coordinates to pixel coordinates
+    coor_xy = uv2coor(uv_rot, h, w)
+
+    # Sample from the input image
+    rotated = sample_equirec(e_img, coor_xy, mode=mode)
+
+    # Return to original channel format if needed
+    if channels_first:
+        rotated = rotated.permute(2, 0, 1)
+
+    return rotated
