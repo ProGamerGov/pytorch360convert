@@ -225,6 +225,18 @@ Extracts a perspective view from an equirectangular image.
 
 - **Returns**: Perspective view of the equirectangular image as a tensor.
 
+### `e2e(e_img, h_deg, w_deg, roll=0, mode='bilinear')`
+
+Rotate an equirectangular image along one or more axes (roll, pitch, and yaw) to produce a horizontal shift, vertical shift, or to roll the image.
+
+
+`e_img` (torch.Tensor): Input equirectangular image tensor in the shape of: [C, H, W] or [H, W, C].
+`roll` (float, optional): Roll angle in degrees. Rotates the image along the x-axis. Default: `0.0`
+`h_deg` (float, optional): Pitch angle in degrees (-up/ +down). Rotates the image along the y-axis to produce a vertical shift. Default: `0.0` 
+`w_deg` (float, optional): Yaw angle in degrees (-left/ +right). Rotates the image along the z-axis to produce a horizontal shift. Default: `0.0`
+`mode` (str, optional): Sampling interpolation mode, 'nearest', 'bicubic', or 'bilinear'. Default: 'bilinear'
+`channels_first` (bool, optional): Whether the input tensor is in channels first format. Default: True
+
 
 ## 🤝 Contributing
 
