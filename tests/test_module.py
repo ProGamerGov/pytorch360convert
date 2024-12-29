@@ -1182,7 +1182,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4], dtype=torch.float16)
         equi_img = e2e(
-            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, h_deg=45, w_deg=45, roll=25, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1192,7 +1192,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4], dtype=torch.float64)
         equi_img = e2e(
-            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, h_deg=45, w_deg=45, roll=25, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1202,7 +1202,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         equi_img = e2e(
-            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, h_deg=45, w_deg=45, roll=25, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1212,7 +1212,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         equi_img = e2e(
-            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, h_deg=45, w_deg=45, roll=25, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1222,7 +1222,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4], required_grad=True)
         equi_img = e2e(
-            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, h_deg=45, w_deg=45, roll=25, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1235,7 +1235,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4]).cuda()
         equi_img = e2e(
-            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+            test_faces, h_deg=45, w_deg=45, roll=25, mode="bilinear", cube_format="stack"
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
