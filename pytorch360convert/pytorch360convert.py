@@ -968,8 +968,7 @@ def e2e(
     assert e_img.dim() == 3
 
     # Ensure image is in HWC format for processing
-    if channels_first:
-        e_img = e_img.permute(1, 2, 0)
+    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
 
     # Convert angles to radians
     roll_rad = torch.tensor(
@@ -1019,7 +1018,5 @@ def e2e(
     rotated = sample_equirec(e_img, coor_xy, mode=mode)
 
     # Return to original channel format if needed
-    if channels_first:
-        rotated = rotated.permute(2, 0, 1)
-
+    rotated = rotated.permute(2, 0, 1) if channels_first else rotated
     return rotated
