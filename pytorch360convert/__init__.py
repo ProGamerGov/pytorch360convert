@@ -9,4 +9,5 @@ from .pytorch360convert import (
     cube_list2h,
     e2c,
     e2p,
+    e2e,
 )
