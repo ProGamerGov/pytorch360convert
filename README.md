@@ -30,7 +30,7 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 
 ## 🔧 Requirements
 
-- Python 3.8+
+- Python 3.7+
 - [PyTorch](https://pytorch.org/)
 
 
