@@ -19,6 +19,7 @@ from pytorch360convert.pytorch360convert import (
     cube_list2h,
     e2c,
     e2p,
+    e2e,
     equirect_facetype,
     equirect_uvgrid,
     grid_sample_wrap,
@@ -1175,3 +1176,67 @@ class TestFunctionsBaseTest(unittest.TestCase):
         output_tensor = e2c(x_input, face_w=4, mode="bilinear", cube_format="stack")
         expected_output = _get_e2c_4x4_exact_tensor()
         self.assertTrue(torch.allclose(output_tensor, expected_output))  # type: ignore[arg-type]
+
+    def test_e2e_float16(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4], dtype=torch.float16)
+        equi_img = e2e(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_float64(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4], dtype=torch.float64)
+        equi_img = e2e(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_1channel(self) -> None:
+        channels = 1
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4])
+        equi_img = e2e(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_4channels(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4])
+        equi_img = e2e(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_grad(self) -> None:
+        channels = 3
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4], required_grad=True)
+        equi_img = e2e(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+        self.assertTrue(equi_img.required_grad)
+
+    def test_e2e_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        channels = 3
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4]).cuda()
+        equi_img = e2e(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+        self.assertTrue(equi_img.is_cuda)
