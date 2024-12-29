@@ -1000,10 +1000,10 @@ def e2e(
         roll_rad, torch.tensor([1.0, 0.0, 0.0], device=e_img.device, dtype=e_img.dtype)
     )
     Ry = rotation_matrix(
-        yaw_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+        pitch_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
     )
     Rz = rotation_matrix(
-        pitch_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
+        yaw_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
     )
 
     # Apply rotations: first roll, then pitch, then yaw
