@@ -958,7 +958,7 @@ def e2e(
             channels first format. Default: True
 
     Returns:
-        torch.Tensor: Rotated equirectangular image.
+        torch.Tensor: Modified equirectangular image.
     """
 
     roll = roll
