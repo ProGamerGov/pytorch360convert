@@ -210,7 +210,7 @@ Converts a cubemap projection to an equirectangular image.
      
 - **Returns**: Equirectangular projection of the input cubemap as a tensor.
 
-### `e2p(e_img, fov_deg, u_deg, v_deg, out_hw, in_rot_deg=0, mode='bilinear')`
+### `e2p(e_img, fov_deg, h_deg, w_deg, out_hw, in_rot_deg=0, mode='bilinear')`
 Extracts a perspective view from an equirectangular image.
 
 - **Parameters**:
