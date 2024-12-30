@@ -39,8 +39,8 @@ def _relative_to_full_link(long_description: str) -> str:
 
     # Replace relative links in ![](examples/...)
     long_description = re.sub(
-        r'(!\[\]\((examples/[\w\-/\.]+)\))',
-        lambda match: f'![]({github_base_url}{match.group(2)}?raw=true)',
+        r"(!\[\]\((examples/[\w\-/\.]+)\))",
+        lambda match: f"![]({github_base_url}{match.group(2)}?raw=true)",
         long_description,
     )
 
