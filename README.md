@@ -194,6 +194,10 @@ rotated_equi = e2e(
 save_tensor_as_image(rotated_equi, "rotated.jpg")
 ```
 
+| Equirectangular Input | Rotated Output |
+| :---: | :----: |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_equirectangular_rotated.png) |
+
 
 ## 📚 Basic Functions
 
