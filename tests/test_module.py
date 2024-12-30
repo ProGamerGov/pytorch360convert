@@ -1189,7 +1189,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
             w_deg=45,
             roll=25,
             mode="bilinear",
-            cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1206,7 +1205,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
             w_deg=45,
             roll=25,
             mode="bilinear",
-            cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1221,7 +1219,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
             w_deg=45,
             roll=25,
             mode="bilinear",
-            cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1236,7 +1233,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
             w_deg=45,
             roll=25,
             mode="bilinear",
-            cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1253,7 +1249,6 @@ class TestFunctionsBaseTest(unittest.TestCase):
             w_deg=45,
             roll=25,
             mode="bilinear",
-            cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
@@ -1271,8 +1266,21 @@ class TestFunctionsBaseTest(unittest.TestCase):
             w_deg=45,
             roll=25,
             mode="bilinear",
-            cube_format="stack",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
         self.assertTrue(equi_img.is_cuda)
+
+    def test_e2e_jit(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4])
+        e2e_jit = torch.jit.script(e2e)
+        equi_img = e2e_jit(
+            test_faces,
+            h_deg=45,
+            w_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
