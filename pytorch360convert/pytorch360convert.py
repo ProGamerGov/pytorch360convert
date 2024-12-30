@@ -995,7 +995,7 @@ def e2e(
     e_img: torch.Tensor,
     roll: float = 0.0,
     h_deg: float = 0.0,
-    w_deg: float = 0.0,
+    v_deg: float = 0.0,
     mode: str = "bilinear",
     channels_first: bool = True,
 ) -> torch.Tensor:
@@ -1015,7 +1015,7 @@ def e2e(
             Default: 0.0
         h_deg (float, optional): Pitch angle in degrees (-down/ +up). Rotates the
             image along the y-axis to produce a vertical shift. Default: 0.0
-        w_deg (float, optional): Yaw angle in degrees (-left/ +right). Rotates the
+        v_deg (float, optional): Yaw angle in degrees (-left/ +right). Rotates the
             image along the z-axis to produce a horizontal shift. Default: 0.0
         mode (str, optional): Sampling interpolation mode, 'nearest',
             'bicubic', or 'bilinear'. Default: 'bilinear'.
@@ -1028,7 +1028,7 @@ def e2e(
 
     roll = roll
     pitch = h_deg
-    yaw = w_deg
+    yaw = v_deg
 
     assert e_img.dim() == 3 or e_img.dim() == 4
     # Ensure input is in HWC format for processing
