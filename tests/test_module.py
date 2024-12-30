@@ -1184,7 +1184,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [channels, face_width * 2, face_width * 4], dtype=torch.float16
         )
         equi_img = e2e(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
@@ -1200,7 +1200,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [channels, face_width * 2, face_width * 4], dtype=torch.float64
         )
         equi_img = e2e(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
@@ -1214,7 +1214,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         equi_img = e2e(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
@@ -1228,7 +1228,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         equi_img = e2e(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
@@ -1244,7 +1244,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [channels, face_width * 2, face_width * 4], required_grad=True
         )
         equi_img = e2e(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
@@ -1261,7 +1261,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4]).cuda()
         equi_img = e2e(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
@@ -1277,7 +1277,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         e2e_jit = torch.jit.script(e2e)
         equi_img = e2e_jit(
-            test_faces,
+            test_equi,
             h_deg=45,
             w_deg=45,
             roll=25,
