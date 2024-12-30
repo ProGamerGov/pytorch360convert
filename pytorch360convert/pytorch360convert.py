@@ -947,7 +947,8 @@ def e2e(
         e_img (torch.Tensor): Input equirectangular image tensor in the shape
             of: [C, H, W] or [H, W, C].
         roll (float, optional): Roll angle in degrees. Rotates the image along
-            the x-axis. Default: 0.0
+            the x-axis. Roll directions: (-counter_clockwise/ + clockwise).
+            Default: 0.0
         h_deg (float, optional): Pitch angle in degrees (-down/ +up). Rotates the
             image along the y-axis to produce a vertical shift. Default: 0.0
         w_deg (float, optional): Yaw angle in degrees (-left/ +right). Rotates the
