@@ -1441,3 +1441,152 @@ class TestFunctionsBaseTest(unittest.TestCase):
             mode="bilinear",
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+
+    def test_e2e_exact(self) -> None:
+        channels = 1
+        face_width = 2
+
+        w = face_width * 2
+        h = face_width * 4
+        test_equi = torch.arange(h * w * channels, dtype=torch.float32)
+        test_equi = test_equi.reshape(channels, h, w)
+
+        result = e2e(
+            test_equi,
+            h_deg=45,
+            w_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(result.shape), list(test_equi.shape))
+
+        expected_output = torch.tensor(
+            [
+                [
+                    [
+                        8.846327781677246,
+                        7.38915491104126,
+                        10.024271011352539,
+                        11.211331367492676,
+                    ],
+                    [
+                        9.07547378540039,
+                        3.879967451095581,
+                        12.109222412109375,
+                        15.09968376159668,
+                    ],
+                    [
+                        10.49519157409668,
+                        2.552384614944458,
+                        14.621706008911133,
+                        19.000062942504883,
+                    ],
+                    [
+                        12.717361450195312,
+                        4.980112552642822,
+                        17.24430274963379,
+                        22.87851905822754,
+                    ],
+                    [
+                        15.3826265335083,
+                        8.457935333251953,
+                        19.71427345275879,
+                        26.661039352416992,
+                    ],
+                    [
+                        18.184263229370117,
+                        12.159286499023438,
+                        21.694225311279297,
+                        29.683902740478516,
+                    ],
+                    [
+                        20.887590408325195,
+                        15.91322135925293,
+                        22.679805755615234,
+                        29.112091064453125,
+                    ],
+                    [
+                        20.43504524230957,
+                        19.638233184814453,
+                        22.215164184570312,
+                        23.207149505615234,
+                    ],
+                ]
+            ]
+        )
+        self.assertTrue(torch.allclose(result, expected_output))
+
+    def test_e2e_exact_batch(self) -> None:
+        batch = 2
+        channels = 1
+        face_width = 2
+
+        w = face_width * 2
+        h = face_width * 4
+        test_equi = torch.arange(batch * h * w * channels, dtype=torch.float32)
+        test_equi = test_equi.reshape(batch, channels, h, w)
+
+        result = e2e(
+            test_equi,
+            h_deg=45,
+            w_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(result.shape), list(test_equi.shape))
+
+        expected_output = torch.tensor(
+            [
+                [
+                    [
+                        8.846327781677246,
+                        7.38915491104126,
+                        10.024271011352539,
+                        11.211331367492676,
+                    ],
+                    [
+                        9.07547378540039,
+                        3.879967451095581,
+                        12.109222412109375,
+                        15.09968376159668,
+                    ],
+                    [
+                        10.49519157409668,
+                        2.552384614944458,
+                        14.621706008911133,
+                        19.000062942504883,
+                    ],
+                    [
+                        12.717361450195312,
+                        4.980112552642822,
+                        17.24430274963379,
+                        22.87851905822754,
+                    ],
+                    [
+                        15.3826265335083,
+                        8.457935333251953,
+                        19.71427345275879,
+                        26.661039352416992,
+                    ],
+                    [
+                        18.184263229370117,
+                        12.159286499023438,
+                        21.694225311279297,
+                        29.683902740478516,
+                    ],
+                    [
+                        20.887590408325195,
+                        15.91322135925293,
+                        22.679805755615234,
+                        29.112091064453125,
+                    ],
+                    [
+                        20.43504524230957,
+                        19.638233184814453,
+                        22.215164184570312,
+                        23.207149505615234,
+                    ],
+                ]
+            ]
+        )
+        self.assertTrue(torch.allclose(result, expected_output.repeat(2, 1, 1, 1, 1)))
