@@ -437,6 +437,8 @@ def grid_sample_wrap(
     grid = torch.stack([grid_x, grid_y], dim=-1)  # [H_out, W_out, 2]
 
     grid = grid.unsqueeze(0)  # [1, H_out, W_out,2]
+    if has_batch:
+        grid = grid.repeat(img_t.shape[0], 1, 1, 1)
 
     # grid_sample: note that the code samples using (y, x) order if
     # align_corners=False, we must be careful:
