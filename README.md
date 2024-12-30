@@ -215,10 +215,10 @@ Extracts a perspective view from an equirectangular image.
 
 - **Parameters**:
   - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
-  - `fov_deg` (float or tuple): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
-  - `h_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
-  - `w_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
-  - `out_hw` (tuple): Output image dimensions in the shape of '(height, width)'.
+  - `fov_deg` (float or tuple of float): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
+  - `h_deg` (float, optional): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up). Default: `0.0`
+  - `w_deg` (float, optional): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right). Default: `0.0`
+  - `out_hw` (float or tuple of float, optional): Output image dimensions in the shape of '(height, width)'. Default: `(512, 512)`
   - `in_rot_deg` (float, optional): Inplane rotation angle. Default: `0`
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear`, `bicubic`, and `nearest`. Default: `bilinear`
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
