@@ -866,9 +866,9 @@ def e2c(
 def e2p(
     e_img: torch.Tensor,
     fov_deg: Union[float, Tuple[float, float]],
-    h_deg: float,
-    w_deg: float,
-    out_hw: Tuple[int, int],
+    h_deg: float = 0.0,
+    w_deg: float = 0.0,
+    out_hw: Tuple[int, int] = (512, 512),
     in_rot_deg: float = 0,
     mode: str = "bilinear",
     channels_first: bool = True,
@@ -879,11 +879,12 @@ def e2p(
     Args:
         e_img (torch.Tensor): Input equirectangular image tensor of shape
             [C, H, W] or [H, W, C].
-        fov_deg (Union[float, Tuple[float, float]]): Field of view in degrees.
+        fov_deg (float or tuple of 2 floats, optional): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
-        h_deg (float): Horizontal rotation angle in degrees.
-        w_deg (float): Vertical rotation angle in degrees.
-        out_hw (Tuple[int, int]): Output image height and width.
+        h_deg (float, optional): Vertical rotation angle in degrees. Default: 0.0
+        w_deg (float, optional): Horizontal rotation angle in degrees. Default: 0.0
+        out_hw (tuple of 2 ints, optional): The output image size specified as
+            a tuple of (height, width). Default is (512, 512).
         in_rot_deg (float, optional): Input rotation angle in degrees.
             Default: 0
         mode (str, optional): Sampling interpolation mode, 'nearest',
