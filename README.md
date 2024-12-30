@@ -104,7 +104,7 @@ Converting equirectangular images into cubemaps is easy. For simplicity, we'll u
 from pytorch360convert import e2c
 
 # Load equirectangular image (3, 1376, 2752)
-equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.png")
 face_w = equi_image.shape[2] // 4  # 2752 / 4 = 688
 
 # Convert to cubemap (dice format)
@@ -121,7 +121,7 @@ save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 
 | Equirectangular Input | Cubemap 'Dice' Output |
 | :---: | :----: |
-| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_dice_cubemap.jpg) |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_dice_cubemap.jpg) |
 
 | Cubemap 'Horizon' Output |
 | :---: |
@@ -153,7 +153,7 @@ save_tensor_as_image(equirectangular, "equirectangular.jpg")
 from pytorch360convert import e2p
 
 # Load equirectangular input
-equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.png")
 
 # Extract perspective view from equirectangular image
 perspective_view = e2p(
@@ -170,7 +170,7 @@ save_tensor_as_image(perspective_view, "perspective.jpg")
 
 | Equirectangular Input | Perspective Output |
 | :---: | :----: |
-| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_perspective.jpg) |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_perspective.jpg) |
 
 
 
@@ -180,7 +180,7 @@ save_tensor_as_image(perspective_view, "perspective.jpg")
 from pytorch360convert import e2e
 
 # Load equirectangular input
-equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.png")
 
 # Rotate an equirectangular image around one more axes
 rotated_equi = e2e(
