@@ -18,7 +18,7 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     ax = ax / torch.sqrt((ax**2).sum())
     c = torch.cos(rad)
     s = torch.sin(rad)
-    R = torch.diag(torch.stack([c, c, c]))
+    R = torch.diag(torch.cat([c, c, c]))
     R = R + (1.0 - c) * torch.ger(ax, ax)
     K = torch.stack(
         [
