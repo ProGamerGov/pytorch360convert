@@ -142,13 +142,14 @@ class TestFunctionsBaseTest(unittest.TestCase):
     def test_rotation_matrix(self) -> None:
         # Test identity rotation (0 radians around any axis)
         axis = torch.tensor([1.0, 0.0, 0.0])
-        angle = torch.tensor(0.0)
+        angle = torch.tensor([0.0])
         result = rotation_matrix(angle, axis)
         expected = torch.eye(3)
         torch.testing.assert_close(result, expected, rtol=1e-6, atol=1e-6)
 
+    def test_rotation_matrix_90deg(self) -> None:
         # Test 90-degree rotation around x-axis
-        angle = torch.tensor(math.pi / 2)
+        angle = torch.tensor([math.pi / 2])
         result = rotation_matrix(angle, axis)
         expected = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]])
         torch.testing.assert_close(result, expected, rtol=1e-6, atol=1e-6)
