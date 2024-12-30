@@ -936,8 +936,10 @@ def e2p(
             or [B, H, W, C].
         fov_deg (float or tuple of floats, optional): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
-        h_deg (float, optional): Horizontal rotation angle in degrees. Default: 0.0
-        v_deg (float, optional): Vertical rotation angle in degrees. Default: 0.0
+        h_deg (float, optional): Horizontal rotation angle in degrees
+            (-Left/+Right). Default: 0.0
+        v_deg (float, optional): Vertical rotation angle in degrees
+            (-Down/+Up). Default: 0.0
         out_hw (tuple of int, optional): The output image size specified as
             a tuple of (height, width). Default: (512, 512)
         in_rot_deg (float, optional): Input rotation angle in degrees.
@@ -1013,11 +1015,11 @@ def e2e(
             of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
             or [B, H, W, C].
         roll (float, optional): Roll angle in degrees. Rotates the image along
-            the x-axis. Roll directions: (-counter_clockwise/ + clockwise).
+            the x-axis. Roll directions: (-counter_clockwise/+clockwise).
             Default: 0.0
-        h_deg (float, optional): Yaw angle in degrees (-left/ +right). Rotates the
+        h_deg (float, optional): Yaw angle in degrees (-left/+right). Rotates the
             image along the z-axis to produce a horizontal shift. Default: 0.0
-        v_deg (float, optional): Pitch angle in degrees (-down/ +up). Rotates the
+        v_deg (float, optional): Pitch angle in degrees (-down/+up). Rotates the
             image along the y-axis to produce a vertical shift. Default: 0.0
         mode (str, optional): Sampling interpolation mode, 'nearest',
             'bicubic', or 'bilinear'. Default: 'bilinear'.
