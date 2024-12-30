@@ -38,6 +38,44 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     return R
 
 
+def _nhwc2nchw(x: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+    """
+    Convert NHWC to NCHW or HWC to CHW format.
+
+    Args:
+        x (torch.Tensor): Input tensor to be converted, either in NCHW or CHW format.
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: The converted tensor in NCHW or CHW format.
+    """
+    if x.dim() == 3:
+        x = x.permute(2, 0, 1) if channels_first else x
+    else:
+        x = x.permute(0, 3, 1, 2) if channels_first else x
+    return x
+
+
+def _nchw2nhwc(x: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+    """
+    Convert NCHW to NHWC or CHW to HWC format.
+
+    Args:
+        x (torch.Tensor): Input tensor to be converted, either in NCHW or CHW format.
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: The converted tensor in NHWC or HWC format.
+    """
+    if x.dim() == 3:
+        x = x.permute(1, 2, 0) if channels_first else x
+    else:
+        x = x.permute(0, 2, 3, 1) if channels_first else x
+    return x
+
+
 def _slice_chunk(
     index: int, width: int, offset: int = 0, device: torch.device = torch.device("cpu")
 ) -> torch.Tensor:
@@ -359,7 +397,8 @@ def grid_sample_wrap(
     Sample from an image with wrapped horizontal coordinates.
 
     Args:
-        image (torch.Tensor): Input image tensor of shape [H, W, C].
+        image (torch.Tensor): Input image tensor in the shape of [H, W, C] or
+            [N, H, W, C].
         coor_x (torch.Tensor): X coordinates for sampling.
         coor_y (torch.Tensor): Y coordinates for sampling.
         mode (str, optional): Sampling interpolation mode, 'nearest',
@@ -370,7 +409,19 @@ def grid_sample_wrap(
     Returns:
         torch.Tensor: Sampled image tensor.
     """
-    H, W, _ = image.shape  # H, W, C
+
+    assert image.dim() == 4 or image.dim() == 3
+    # Permute image to NCHW
+    if image.dim() == 3:
+        has_batch = False
+        H, W, _ = image.shape
+        # [H,W,C] -> [1,C,H,W]
+        img_t = image.permute(2, 0, 1).unsqueeze(0)
+    else:
+        has_batch = True
+        _, H, W, _ = image.shape
+        # [N,H,W,C] -> [N,C,H,W]
+        img_t = image.permute(0, 3, 1, 2)
 
     # coor_x, coor_y: [H_out, W_out]
     # We must create a grid for F.grid_sample:
@@ -385,9 +436,7 @@ def grid_sample_wrap(
     grid_y = (coor_y_clamped / (H - 1)) * 2 - 1
     grid = torch.stack([grid_x, grid_y], dim=-1)  # [H_out, W_out, 2]
 
-    # Permute image to NCHW
-    img_t = image.permute(2, 0, 1).unsqueeze(0)  # [1,C,H,W]
-    grid = grid.unsqueeze(0)  # [1,H_out,W_out,2]
+    grid = grid.unsqueeze(0)  # [1, H_out, W_out,2]
 
     # grid_sample: note that the code samples using (y, x) order if
     # align_corners=False, we must be careful:
@@ -408,8 +457,11 @@ def grid_sample_wrap(
             img_t, grid, mode=mode, padding_mode=padding_mode, align_corners=True
         )
 
-    # [1,C,H_out,W_out]
-    sampled = sampled.squeeze(0).permute(1, 2, 0)  # [H_out, W_out, C]
+    if has_batch:
+        sampled = sampled.permute(0, 2, 3, 1)
+    else:
+        # [1, C, H_out, W_out]
+        sampled = sampled.squeeze(0).permute(1, 2, 0)  # [H_out, W_out, C]
     return sampled
 
 
@@ -895,10 +947,14 @@ def e2p(
     Returns:
         torch.Tensor: Perspective projection image tensor.
     """
-    assert len(e_img.shape) == 3
+    assert e_img.dim() == 3 or e_img.dim() == 4
+
     # Ensure input is in HWC format for processing
-    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
-    h, w = e_img.shape[:2]
+    e_img = _nchw2nhwc(e_img)
+    if e_img.dim() == 3:
+        h, w = e_img.shape[:2]
+    else:
+        h, w, _ = e_img.shape[1:]
 
     if isinstance(fov_deg, (list, tuple)):
         h_fov_rad = fov_deg[0] * torch.pi / 180
@@ -929,7 +985,7 @@ def e2p(
     pers_img = sample_equirec(e_img, coor_xy, mode)
 
     # Convert back to CHW if required
-    pers_img = pers_img.permute(2, 0, 1) if channels_first else pers_img
+    pers_img = _nhwc2nchw(pers_img, channels_first)
     return pers_img
 
 
@@ -972,10 +1028,13 @@ def e2e(
     pitch = h_deg
     yaw = w_deg
 
-    assert e_img.dim() == 3
-
-    # Ensure image is in HWC format for processing
-    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
+    assert e_img.dim() == 3 or e_img.dim() == 4
+    # Ensure input is in HWC format for processing
+    e_img = _nchw2nhwc(e_img)
+    if e_img.dim() == 3:
+        h, w = e_img.shape[:2]
+    else:
+        h, w, _ = e_img.shape[1:]
 
     # Convert angles to radians
     roll_rad = torch.tensor(
@@ -987,8 +1046,6 @@ def e2e(
     yaw_rad = torch.tensor(
         [yaw * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
     )
-
-    h, w = e_img.shape[:2]
 
     # Create base coordinates for the output image
     y_range = torch.linspace(0, h - 1, h, device=e_img.device, dtype=e_img.dtype)
@@ -1025,5 +1082,5 @@ def e2e(
     rotated = sample_equirec(e_img, coor_xy, mode=mode)
 
     # Return to original channel format if needed
-    rotated = rotated.permute(2, 0, 1) if channels_first else rotated
+    rotated = _nhwc2nchw(rotated, channels_first)
     return rotated
