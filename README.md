@@ -60,7 +60,7 @@ pip install .
 ## 🚀 Key Features
 
 - Lossless conversion between image formats.
-- Supports different cubemap input formats (horizon, list, dict, dice).
+- Supports different cubemap input formats (horizon, list, stack, dict, dice).
 - Configurable sampling modes (bilinear, nearest).
 - Supports different dtypes (float16, float32, float64).
 - CPU support.
