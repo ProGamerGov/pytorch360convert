@@ -979,13 +979,13 @@ def e2e(
 
     # Convert angles to radians
     roll_rad = torch.tensor(
-        roll * torch.pi / 180.0, device=e_img.device, dtype=e_img.dtype
+        [roll * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
     )
     pitch_rad = torch.tensor(
-        pitch * torch.pi / 180.0, device=e_img.device, dtype=e_img.dtype
+        [pitch * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
     )
     yaw_rad = torch.tensor(
-        yaw * torch.pi / 180.0, device=e_img.device, dtype=e_img.dtype
+        [yaw * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
     )
 
     h, w = e_img.shape[:2]
