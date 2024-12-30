@@ -149,6 +149,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_rotation_matrix_90deg(self) -> None:
         # Test 90-degree rotation around x-axis
+        axis = torch.tensor([1.0, 0.0, 0.0])
         angle = torch.tensor([math.pi / 2])
         result = rotation_matrix(angle, axis)
         expected = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]])
