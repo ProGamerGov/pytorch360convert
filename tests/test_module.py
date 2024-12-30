@@ -1241,7 +1241,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         channels = 3
         face_width = 512
         test_equi = torch.ones(
-            [channels, face_width * 2, face_width * 4], required_grad=True
+            [channels, face_width * 2, face_width * 4], requires_grad=True
         )
         equi_img = e2e(
             test_equi,
@@ -1272,7 +1272,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertTrue(equi_img.is_cuda)
 
     def test_e2e_jit(self) -> None:
-        channels = 4
+        channels = 3
         face_width = 512
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         e2e_jit = torch.jit.script(e2e)
