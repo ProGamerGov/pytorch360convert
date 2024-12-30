@@ -921,7 +921,7 @@ def e2p(
     e_img: torch.Tensor,
     fov_deg: Union[float, Tuple[float, float]],
     h_deg: float = 0.0,
-    w_deg: float = 0.0,
+    v_deg: float = 0.0,
     out_hw: Tuple[int, int] = (512, 512),
     in_rot_deg: float = 0.0,
     mode: str = "bilinear",
@@ -935,8 +935,8 @@ def e2p(
             [C, H, W] or [H, W, C].
         fov_deg (float or tuple of floats, optional): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
-        h_deg (float, optional): Vertical rotation angle in degrees. Default: 0.0
-        w_deg (float, optional): Horizontal rotation angle in degrees. Default: 0.0
+        h_deg (float, optional): Horizontal rotation angle in degrees. Default: 0.0
+        v_deg (float, optional): Vertical rotation angle in degrees. Default: 0.0
         out_hw (tuple of int, optional): The output image size specified as
             a tuple of (height, width). Default: (512, 512)
         in_rot_deg (float, optional): Input rotation angle in degrees.
@@ -969,7 +969,7 @@ def e2p(
     in_rot = in_rot_deg * torch.pi / 180
 
     u = -h_deg * torch.pi / 180
-    v = w_deg * torch.pi / 180
+    v = v_deg * torch.pi / 180
 
     xyz = xyzpers(
         h_fov_rad,
