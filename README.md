@@ -160,7 +160,7 @@ perspective_view = e2p(
     equi_image,                   # Equirectangular image
     fov_deg=(70, 60),             # Horizontal and vertical FOV
     h_deg=260,                    # Horizontal rotation
-    w_deg=50,                     # Vertical rotation
+    v_deg=50,                     # Vertical rotation
     out_hw=(512, 768),            # Output image dimensions
     mode='bilinear'               # Sampling interpolation
 )
@@ -243,7 +243,7 @@ Extracts a perspective view from an equirectangular image.
   - `e_img` (torch.Tensor): Equirectangular CHW or NCHW image tensor.
   - `fov_deg` (float or tuple of float): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
   - `h_deg` (float, optional): Horizontal viewing angle in range [-pi, pi]. (-Left/+Right). Default: `0.0`
-  - `w_deg` (float, optional): Vertical viewing angle in range [-pi/2, pi/2]. (-Down/+Up). Default: `0.0`
+  - `v_deg` (float, optional): Vertical viewing angle in range [-pi/2, pi/2]. (-Down/+Up). Default: `0.0`
   - `out_hw` (float or tuple of float, optional): Output image dimensions in the shape of '(height, width)'. Default: `(512, 512)`
   - `in_rot_deg` (float, optional): Inplane rotation angle. Default: `0`
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear`, `bicubic`, and `nearest`. Default: `bilinear`
