@@ -931,8 +931,9 @@ def e2p(
     Convert an equirectangular image to a perspective projection.
 
     Args:
-        e_img (torch.Tensor): Input equirectangular image tensor of shape
-            [C, H, W] or [H, W, C].
+        e_img (torch.Tensor): Input equirectangular image tensor in the shape
+            of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
+            or [B, H, W, C].
         fov_deg (float or tuple of floats, optional): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
         h_deg (float, optional): Horizontal rotation angle in degrees. Default: 0.0
@@ -1009,7 +1010,8 @@ def e2e(
 
     Args:
         e_img (torch.Tensor): Input equirectangular image tensor in the shape
-            of: [C, H, W] or [H, W, C].
+            of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
+            or [B, H, W, C].
         roll (float, optional): Roll angle in degrees. Rotates the image along
             the x-axis. Roll directions: (-counter_clockwise/ + clockwise).
             Default: 0.0
