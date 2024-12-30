@@ -940,8 +940,12 @@ def e2e(
     channels_first: bool = True,
 ) -> torch.Tensor:
     """
-    Rotate an equirectangular image along one or more axes (roll, pitch, and yaw)
-    to produce a roll, horizontal shift, or vertical shift.
+    Apply rotations to an equirectangular image along the roll, pitch, and yaw
+    axes.
+
+    This function rotates an equirectangular image tensor along the roll
+    (x-axis), pitch (y-axis), and yaw (z-axis) axes, which correspond to
+    rotations that produce vertical and horizontal shifts in the image.
 
     Args:
         e_img (torch.Tensor): Input equirectangular image tensor in the shape
