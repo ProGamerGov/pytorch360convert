@@ -1329,7 +1329,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1345,7 +1345,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1359,7 +1359,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1373,7 +1373,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1389,7 +1389,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1406,7 +1406,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1422,7 +1422,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e_jit(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1436,7 +1436,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         equi_img = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1454,7 +1454,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         result = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
@@ -1529,7 +1529,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         result = e2e(
             test_equi,
             h_deg=45,
-            w_deg=45,
+            v_deg=45,
             roll=25,
             mode="bilinear",
         )
