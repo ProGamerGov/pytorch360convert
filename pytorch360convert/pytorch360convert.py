@@ -910,13 +910,14 @@ def e2p(
 
     in_rot = in_rot_deg * torch.pi / 180
 
-    h_deg = -h_deg * torch.pi / 180
-    w_deg = w_deg * torch.pi / 180
+    u = -h_deg * torch.pi / 180
+    v = w_deg * torch.pi / 180
+    
     xyz = xyzpers(
         h_fov_rad,
         v_fov_rad,
-        h_deg,
-        w_deg,
+        u,
+        v,
         out_hw,
         in_rot,
         device=e_img.device,
