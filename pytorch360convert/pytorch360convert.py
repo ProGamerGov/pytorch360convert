@@ -953,9 +953,9 @@ def e2e(
         w_deg (float, optional): Yaw angle in degrees (left/right). Rotates the
             image along the z-axis to produce a horizontal shift. Default: 0.0
         mode (str, optional): Sampling interpolation mode, 'nearest',
-            'bicubic', or 'bilinear'. Default: 'bilinear'
-        channels_first (bool, optional): Whether the input tensor is in
-            channels first format. Default: True
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
 
     Returns:
         torch.Tensor: Modified equirectangular image.
