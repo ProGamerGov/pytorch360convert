@@ -912,7 +912,7 @@ def e2p(
 
     u = -h_deg * torch.pi / 180
     v = w_deg * torch.pi / 180
-    
+
     xyz = xyzpers(
         h_fov_rad,
         v_fov_rad,
