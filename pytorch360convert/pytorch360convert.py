@@ -869,7 +869,7 @@ def e2p(
     h_deg: float = 0.0,
     w_deg: float = 0.0,
     out_hw: Tuple[int, int] = (512, 512),
-    in_rot_deg: float = 0,
+    in_rot_deg: float = 0.0,
     mode: str = "bilinear",
     channels_first: bool = True,
 ) -> torch.Tensor:
@@ -879,14 +879,14 @@ def e2p(
     Args:
         e_img (torch.Tensor): Input equirectangular image tensor of shape
             [C, H, W] or [H, W, C].
-        fov_deg (float or tuple of 2 floats, optional): Field of view in degrees.
+        fov_deg (float or tuple of floats, optional): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
         h_deg (float, optional): Vertical rotation angle in degrees. Default: 0.0
         w_deg (float, optional): Horizontal rotation angle in degrees. Default: 0.0
-        out_hw (tuple of 2 ints, optional): The output image size specified as
-            a tuple of (height, width). Default is (512, 512).
+        out_hw (tuple of int, optional): The output image size specified as
+            a tuple of (height, width). Default: (512, 512)
         in_rot_deg (float, optional): Input rotation angle in degrees.
-            Default: 0
+            Default: 0.0
         mode (str, optional): Sampling interpolation mode, 'nearest',
             'bicubic', or 'bilinear'. Default: 'bilinear'.
         channels_first (bool, optional): The channel format of e_img. PyTorch
