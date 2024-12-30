@@ -170,7 +170,7 @@ save_tensor_as_image(perspective_view, "perspective.jpg")
 
 | Equirectangular Input | Perspective Output |
 | :---: | :----: |
-| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_perspective.jpg) |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_perspective.png) |
 
 
 
