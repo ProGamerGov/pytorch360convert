@@ -185,8 +185,8 @@ equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.pn
 # Rotate an equirectangular image around one more axes
 rotated_equi = e2e(
     equi_image,                   # Equirectangular image
-    h_deg=90.0,                   # Vertical rotation/shift
-    w_deg=200.0,                  # Horizontal rotation/shift
+    v_deg=90.0,                   # Vertical rotation/shift
+    h_deg=200.0,                  # Horizontal rotation/shift
     roll=45.0,                    # Clockwise/counter clockwise rotation
     mode='bilinear'               # Sampling interpolation
 )
@@ -251,15 +251,15 @@ Extracts a perspective view from an equirectangular image.
 
 - **Returns**: Perspective view of the equirectangular image as a tensor.
 
-### `e2e(e_img, h_deg, w_deg, roll=0, mode='bilinear')`
+### `e2e(e_img, h_deg, v_deg, roll=0, mode='bilinear')`
 
 Rotate an equirectangular image along one or more axes (roll, pitch, and yaw) to produce a horizontal shift, vertical shift, or to roll the image.
 
 - **Parameters**:
   - `e_img` (torch.Tensor): Equirectangular CHW or NCHW image tensor.
   - `roll` (float, optional): Roll angle in degrees (-Counter_Clockwise/+Clockwise). Rotates the image along the x-axis. Default: `0.0`
-  - `h_deg` (float, optional): Pitch angle in degrees (-Down/+Up). Rotates the image along the y-axis to produce a vertical shift. Default: `0.0` 
-  - `w_deg` (float, optional): Yaw angle in degrees (-Left/+Right). Rotates the image along the z-axis to produce a horizontal shift. Default: `0.0`
+  - `h_deg` (float, optional): Yaw angle in degrees (-Left/+Right). Rotates the image along the z-axis to produce a horizontal shift. Default: `0.0`
+  - `v_deg` (float, optional): Pitch angle in degrees (-Down/+Up). Rotates the image along the y-axis to produce a vertical shift. Default: `0.0` 
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear`, `bicubic`, and `nearest`. Default: `bilinear`
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
 
