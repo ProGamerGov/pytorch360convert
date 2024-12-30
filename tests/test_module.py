@@ -8,6 +8,8 @@ import numpy as np
 import torch
 from pytorch360convert.pytorch360convert import (
     _face_slice,
+    _nchw2nhwc,
+    _nhwc2nchw,
     _slice_chunk,
     c2e,
     coor2uv,
@@ -18,6 +20,7 @@ from pytorch360convert.pytorch360convert import (
     cube_h2list,
     cube_list2h,
     e2c,
+    e2e,
     e2p,
     equirect_facetype,
     equirect_uvgrid,
@@ -141,13 +144,15 @@ class TestFunctionsBaseTest(unittest.TestCase):
     def test_rotation_matrix(self) -> None:
         # Test identity rotation (0 radians around any axis)
         axis = torch.tensor([1.0, 0.0, 0.0])
-        angle = torch.tensor(0.0)
+        angle = torch.tensor([0.0])
         result = rotation_matrix(angle, axis)
         expected = torch.eye(3)
         torch.testing.assert_close(result, expected, rtol=1e-6, atol=1e-6)
 
+    def test_rotation_matrix_90deg(self) -> None:
         # Test 90-degree rotation around x-axis
-        angle = torch.tensor(math.pi / 2)
+        axis = torch.tensor([1.0, 0.0, 0.0])
+        angle = torch.tensor([math.pi / 2])
         result = rotation_matrix(angle, axis)
         expected = torch.tensor([[1.0, 0.0, 0.0], [0.0, 0.0, -1.0], [0.0, 1.0, 0.0]])
         torch.testing.assert_close(result, expected, rtol=1e-6, atol=1e-6)
@@ -157,6 +162,26 @@ class TestFunctionsBaseTest(unittest.TestCase):
         result_t = result.t()
         identity = torch.mm(result, result_t)
         torch.testing.assert_close(identity, torch.eye(3), rtol=1e-6, atol=1e-6)
+
+    def test_nhwc_to_nchw_channels_first(self) -> None:
+        input_tensor = torch.rand(2, 3, 4, 5)
+        converted_tensor = _nhwc2nchw(input_tensor, channels_first=True)
+        self.assertEqual(converted_tensor.shape, (2, 5, 3, 4))
+
+    def test_nhwc_to_nchw_channels_last(self) -> None:
+        input_tensor = torch.rand(2, 3, 4, 5)
+        converted_tensor = _nhwc2nchw(input_tensor, channels_first=False)
+        self.assertEqual(converted_tensor.shape, (2, 3, 4, 5))
+
+    def test_nchw_to_nhwc_channels_first(self) -> None:
+        input_tensor = torch.rand(2, 5, 3, 4)
+        converted_tensor = _nchw2nhwc(input_tensor, channels_first=True)
+        self.assertEqual(converted_tensor.shape, (2, 3, 4, 5))
+
+    def test_nchw_to_nhwc_channels_last(self) -> None:
+        input_tensor = torch.rand(2, 5, 3, 4)
+        converted_tensor = _nchw2nhwc(input_tensor, channels_first=False)
+        self.assertEqual(converted_tensor.shape, (2, 5, 3, 4))
 
     def test_slice_chunk_default(self) -> None:
         index = 2
@@ -949,10 +974,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertTrue(result.is_cuda)
@@ -965,10 +990,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertTrue(result.requires_grad)
@@ -981,10 +1006,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertEqual(result.dtype, torch.float16)
@@ -997,10 +1022,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
 
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertEqual(result.dtype, torch.float64)
@@ -1064,10 +1089,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
     def test_e2p_4channels(self) -> None:
@@ -1077,10 +1102,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
-        result = e2p(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
 
     def test_c2e_stack_jit(self) -> None:
@@ -1119,13 +1144,154 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         fov_deg = 90.0
         h_deg = 0.0
-        w_deg = 0.0
+        v_deg = 0.0
         out_hw = (32, 32)
 
         e2p_jit = torch.jit.script(e2p)
 
-        result = e2p_jit(e_img, fov_deg, h_deg, w_deg, out_hw)
+        result = e2p_jit(e_img, fov_deg, h_deg, v_deg, out_hw)
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+
+    def test_e2p_exact(self) -> None:
+        channels = 3
+        out_hw = (2, 4)
+        x_input0 = torch.arange(1, 256).repeat(1, 256, 2).float()
+        x_input1 = torch.arange(1, 256).repeat(1, 256, 2).float() * 2.0
+        x_input2 = torch.arange(1, 256).repeat(1, 256, 2).float() * 4.0
+        x_input = torch.cat([x_input0, x_input1, x_input2], 0)
+
+        result = e2p(
+            x_input,
+            fov_deg=(40, 60),
+            h_deg=10,
+            v_deg=50,
+            out_hw=out_hw,
+            mode="bilinear",
+        )
+
+        a = torch.tensor(
+            [
+                [
+                    183.03811645507812,
+                    225.49948120117188,
+                    58.833866119384766,
+                    101.29522705078125,
+                ],
+                [
+                    243.3969268798828,
+                    5.628509521484375,
+                    23.704801559448242,
+                    40.9364013671875,
+                ],
+            ]
+        )
+        b = torch.tensor(
+            [
+                [
+                    366.07623291015625,
+                    450.99896240234375,
+                    117.66773223876953,
+                    202.5904541015625,
+                ],
+                [
+                    486.7938537597656,
+                    11.25701904296875,
+                    47.409603118896484,
+                    81.872802734375,
+                ],
+            ]
+        )
+        c = torch.tensor(
+            [
+                [
+                    732.1524658203125,
+                    901.9979248046875,
+                    235.33546447753906,
+                    405.180908203125,
+                ],
+                [
+                    973.5877075195312,
+                    22.5140380859375,
+                    94.81920623779297,
+                    163.74560546875,
+                ],
+            ]
+        )
+        expected_output = torch.stack([a, b, c])
+
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+        self.assertTrue(torch.allclose(result, expected_output))
+
+    def test_e2p_exact_batch(self) -> None:
+        batch = 2
+        channels = 3
+        out_hw = (2, 4)
+        x_input0 = torch.arange(1, 256).repeat(1, 256, 2).float()
+        x_input1 = torch.arange(1, 256).repeat(1, 256, 2).float() * 2.0
+        x_input2 = torch.arange(1, 256).repeat(1, 256, 2).float() * 4.0
+        x_input = torch.cat([x_input0, x_input1, x_input2], 0).repeat(batch, 1, 1, 1)
+
+        result = e2p(
+            x_input,
+            fov_deg=(40, 60),
+            h_deg=10,
+            v_deg=50,
+            out_hw=out_hw,
+            mode="bilinear",
+        )
+
+        a = torch.tensor(
+            [
+                [
+                    183.03811645507812,
+                    225.49948120117188,
+                    58.833866119384766,
+                    101.29522705078125,
+                ],
+                [
+                    243.3969268798828,
+                    5.628509521484375,
+                    23.704801559448242,
+                    40.9364013671875,
+                ],
+            ]
+        )
+        b = torch.tensor(
+            [
+                [
+                    366.07623291015625,
+                    450.99896240234375,
+                    117.66773223876953,
+                    202.5904541015625,
+                ],
+                [
+                    486.7938537597656,
+                    11.25701904296875,
+                    47.409603118896484,
+                    81.872802734375,
+                ],
+            ]
+        )
+        c = torch.tensor(
+            [
+                [
+                    732.1524658203125,
+                    901.9979248046875,
+                    235.33546447753906,
+                    405.180908203125,
+                ],
+                [
+                    973.5877075195312,
+                    22.5140380859375,
+                    94.81920623779297,
+                    163.74560546875,
+                ],
+            ]
+        )
+        expected_output = torch.stack([a, b, c]).repeat(batch, 1, 1, 1)
+
+        self.assertEqual(list(result.shape), [batch, channels, out_hw[0], out_hw[1]])
+        self.assertTrue(torch.allclose(result, expected_output))
 
     def test_c2e_stack_exact(self) -> None:
         expected_output = _get_c2e_4x4_exact_tensor()
@@ -1175,3 +1341,329 @@ class TestFunctionsBaseTest(unittest.TestCase):
         output_tensor = e2c(x_input, face_w=4, mode="bilinear", cube_format="stack")
         expected_output = _get_e2c_4x4_exact_tensor()
         self.assertTrue(torch.allclose(output_tensor, expected_output))  # type: ignore[arg-type]
+
+    def test_e2e_float16(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones(
+            [channels, face_width * 2, face_width * 4], dtype=torch.float16
+        )
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_float64(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones(
+            [channels, face_width * 2, face_width * 4], dtype=torch.float64
+        )
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_1channel(self) -> None:
+        channels = 1
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4])
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_4channels(self) -> None:
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4])
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+
+    def test_e2e_grad(self) -> None:
+        channels = 3
+        face_width = 512
+        test_equi = torch.ones(
+            [channels, face_width * 2, face_width * 4], requires_grad=True
+        )
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+        self.assertTrue(equi_img.requires_grad)
+
+    def test_e2e_gpu(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        channels = 3
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4]).cuda()
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, test_equi.dtype)
+        self.assertTrue(equi_img.is_cuda)
+
+    def test_e2e_jit(self) -> None:
+        channels = 3
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4])
+        e2e_jit = torch.jit.script(e2e)
+        equi_img = e2e_jit(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+
+    def test_e2e_batch(self) -> None:
+        batch = 2
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([batch, channels, face_width * 2, face_width * 4])
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+
+    def test_e2e_exact(self) -> None:
+        channels = 1
+        face_width = 2
+
+        w = face_width * 2
+        h = face_width * 4
+        test_equi = torch.arange(h * w * channels, dtype=torch.float32)
+        test_equi = test_equi.reshape(channels, h, w)
+
+        result = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(result.shape), list(test_equi.shape))
+
+        expected_output = torch.tensor(
+            [
+                [
+                    [
+                        8.846327781677246,
+                        7.38915491104126,
+                        10.024271011352539,
+                        11.211331367492676,
+                    ],
+                    [
+                        9.07547378540039,
+                        3.879967451095581,
+                        12.109222412109375,
+                        15.09968376159668,
+                    ],
+                    [
+                        10.49519157409668,
+                        2.552384614944458,
+                        14.621706008911133,
+                        19.000062942504883,
+                    ],
+                    [
+                        12.717361450195312,
+                        4.980112552642822,
+                        17.24430274963379,
+                        22.87851905822754,
+                    ],
+                    [
+                        15.3826265335083,
+                        8.457935333251953,
+                        19.71427345275879,
+                        26.661039352416992,
+                    ],
+                    [
+                        18.184263229370117,
+                        12.159286499023438,
+                        21.694225311279297,
+                        29.683902740478516,
+                    ],
+                    [
+                        20.887590408325195,
+                        15.91322135925293,
+                        22.679805755615234,
+                        29.112091064453125,
+                    ],
+                    [
+                        20.43504524230957,
+                        19.638233184814453,
+                        22.215164184570312,
+                        23.207149505615234,
+                    ],
+                ]
+            ]
+        )
+        self.assertTrue(torch.allclose(result, expected_output))
+
+    def test_e2e_exact_batch(self) -> None:
+        batch = 2
+        channels = 1
+        face_width = 2
+
+        w = face_width * 2
+        h = face_width * 4
+        test_equi = torch.arange(batch * h * w * channels, dtype=torch.float32)
+        test_equi = test_equi.reshape(batch, channels, h, w)
+
+        result = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(result.shape), list(test_equi.shape))
+
+        expected_output = torch.tensor(
+            [
+                [
+                    [
+                        [
+                            8.846327781677246,
+                            7.38915491104126,
+                            10.024271011352539,
+                            11.211331367492676,
+                        ],
+                        [
+                            9.07547378540039,
+                            3.879967451095581,
+                            12.109222412109375,
+                            15.09968376159668,
+                        ],
+                        [
+                            10.49519157409668,
+                            2.552384614944458,
+                            14.621706008911133,
+                            19.000062942504883,
+                        ],
+                        [
+                            12.717361450195312,
+                            4.980112552642822,
+                            17.24430274963379,
+                            22.87851905822754,
+                        ],
+                        [
+                            15.3826265335083,
+                            8.457935333251953,
+                            19.71427345275879,
+                            26.661039352416992,
+                        ],
+                        [
+                            18.184263229370117,
+                            12.159286499023438,
+                            21.694225311279297,
+                            29.683902740478516,
+                        ],
+                        [
+                            20.887590408325195,
+                            15.91322135925293,
+                            22.679805755615234,
+                            29.112091064453125,
+                        ],
+                        [
+                            20.43504524230957,
+                            19.638233184814453,
+                            22.215164184570312,
+                            23.207149505615234,
+                        ],
+                    ]
+                ],
+                [
+                    [
+                        [
+                            40.84632873535156,
+                            39.38915252685547,
+                            42.02427291870117,
+                            43.21133041381836,
+                        ],
+                        [
+                            41.07547378540039,
+                            35.879966735839844,
+                            44.109222412109375,
+                            47.09968566894531,
+                        ],
+                        [
+                            42.49519348144531,
+                            34.5523796081543,
+                            46.6217041015625,
+                            51.000064849853516,
+                        ],
+                        [
+                            44.71736145019531,
+                            36.9801139831543,
+                            49.244300842285156,
+                            54.87852096557617,
+                        ],
+                        [
+                            47.382625579833984,
+                            40.45793533325195,
+                            51.71427536010742,
+                            58.66103744506836,
+                        ],
+                        [
+                            50.18426513671875,
+                            44.15928649902344,
+                            53.6942253112793,
+                            61.683902740478516,
+                        ],
+                        [
+                            52.88758850097656,
+                            47.9132194519043,
+                            54.679805755615234,
+                            61.112091064453125,
+                        ],
+                        [
+                            52.43504333496094,
+                            51.63823318481445,
+                            54.21516418457031,
+                            55.207149505615234,
+                        ],
+                    ]
+                ],
+            ]
+        )
+        self.assertEqual(result.shape, expected_output.shape)
+        self.assertTrue(torch.allclose(result, expected_output))

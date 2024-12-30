@@ -31,7 +31,7 @@ Built as an improved PyTorch implementation of the original [py360convert](https
 ## 🔧 Requirements
 
 - Python 3.7+
-- PyTorch
+- [PyTorch](https://pytorch.org/)
 
 
 ## 📦 Installation
@@ -60,7 +60,7 @@ pip install .
 ## 🚀 Key Features
 
 - Lossless conversion between image formats.
-- Supports different cubemap input formats (horizon, list, dict, dice).
+- Supports different cubemap input formats (horizon, list, stack, dict, dice).
 - Configurable sampling modes (bilinear, nearest).
 - Supports different dtypes (float16, float32, float64).
 - CPU support.
@@ -104,7 +104,7 @@ Converting equirectangular images into cubemaps is easy. For simplicity, we'll u
 from pytorch360convert import e2c
 
 # Load equirectangular image (3, 1376, 2752)
-equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.png")
 face_w = equi_image.shape[2] // 4  # 2752 / 4 = 688
 
 # Convert to cubemap (dice format)
@@ -121,11 +121,11 @@ save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 
 | Equirectangular Input | Cubemap 'Dice' Output |
 | :---: | :----: |
-| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_dice_cubemap.jpg) |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_dice_cubemap.png) |
 
 | Cubemap 'Horizon' Output |
 | :---: |
-| ![](examples/example_world_map_horizon_cubemap.jpg) |
+| ![](examples/example_world_map_horizon_cubemap.png) |
 
 ### Cubemap to Equirectangular Conversion
 
@@ -153,14 +153,14 @@ save_tensor_as_image(equirectangular, "equirectangular.jpg")
 from pytorch360convert import e2p
 
 # Load equirectangular input
-equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.jpg")
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.png")
 
 # Extract perspective view from equirectangular image
 perspective_view = e2p(
     equi_image,                   # Equirectangular image
     fov_deg=(70, 60),             # Horizontal and vertical FOV
     h_deg=260,                    # Horizontal rotation
-    w_deg=50,                     # Vertical rotation
+    v_deg=50,                     # Vertical rotation
     out_hw=(512, 768),            # Output image dimensions
     mode='bilinear'               # Sampling interpolation
 )
@@ -170,7 +170,33 @@ save_tensor_as_image(perspective_view, "perspective.jpg")
 
 | Equirectangular Input | Perspective Output |
 | :---: | :----: |
-| ![](examples/example_world_map_equirectangular.jpg) | ![](examples/example_world_map_perspective.jpg) |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_perspective.png) |
+
+
+
+### Equirectangular to Equirectangular
+
+```python
+from pytorch360convert import e2e
+
+# Load equirectangular input
+equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.png")
+
+# Rotate an equirectangular image around one more axes
+rotated_equi = e2e(
+    equi_image,                   # Equirectangular image
+    h_deg=90.0,                   # Vertical rotation/shift
+    v_deg=200.0,                  # Horizontal rotation/shift
+    roll=45.0,                    # Clockwise/counter clockwise rotation
+    mode='bilinear'               # Sampling interpolation
+)
+
+save_tensor_as_image(rotated_equi, "rotated.jpg")
+```
+
+| Equirectangular Input | Rotated Output |
+| :---: | :----: |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_equirectangular_rotated.png) |
 
 
 ## 📚 Basic Functions
@@ -210,20 +236,34 @@ Converts a cubemap projection to an equirectangular image.
      
 - **Returns**: Equirectangular projection of the input cubemap as a tensor.
 
-### `e2p(e_img, fov_deg, u_deg, v_deg, out_hw, in_rot_deg=0, mode='bilinear')`
+### `e2p(e_img, fov_deg, h_deg, v_deg, out_hw, in_rot_deg=0, mode='bilinear')`
 Extracts a perspective view from an equirectangular image.
 
 - **Parameters**:
-  - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
-  - `fov_deg` (float or tuple): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
-  - `h_deg` (float): Horizontal viewing angle in range [-pi, pi]. (- Left / + Right).
-  - `w_deg` (float): Vertical viewing angle in range [-pi/2, pi/2]. (- Down/ + Up).
-  - `out_hw` (tuple): Output image dimensions in the shape of '(height, width)'.
+  - `e_img` (torch.Tensor): Equirectangular CHW or NCHW image tensor.
+  - `fov_deg` (float or tuple of float): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
+  - `h_deg` (float, optional): Horizontal viewing angle in range [-pi, pi]. (-Left/+Right). Default: `0.0`
+  - `v_deg` (float, optional): Vertical viewing angle in range [-pi/2, pi/2]. (-Down/+Up). Default: `0.0`
+  - `out_hw` (float or tuple of float, optional): Output image dimensions in the shape of '(height, width)'. Default: `(512, 512)`
   - `in_rot_deg` (float, optional): Inplane rotation angle. Default: `0`
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear`, `bicubic`, and `nearest`. Default: `bilinear`
   - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
 
 - **Returns**: Perspective view of the equirectangular image as a tensor.
+
+### `e2e(e_img, h_deg, v_deg, roll=0, mode='bilinear')`
+
+Rotate an equirectangular image along one or more axes (roll, pitch, and yaw) to produce a horizontal shift, vertical shift, or to roll the image.
+
+- **Parameters**:
+  - `e_img` (torch.Tensor): Equirectangular CHW or NCHW image tensor.
+  - `roll` (float, optional): Roll angle in degrees (-Counter_Clockwise/+Clockwise). Rotates the image along the x-axis. Default: `0.0`
+  - `h_deg` (float, optional): Yaw angle in degrees (-Left/+Right). Rotates the image along the z-axis to produce a horizontal shift. Default: `0.0`
+  - `v_deg` (float, optional): Pitch angle in degrees (-Down/+Up). Rotates the image along the y-axis to produce a vertical shift. Default: `0.0` 
+  - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear`, `bicubic`, and `nearest`. Default: `bilinear`
+  - `channels_first` (bool, optional): Input cubemap channel format (CHW or HWC). Defaults to the PyTorch CHW standard of `True`.
+
+- **Returns**: A modified equirectangular image tensor.
 
 
 ## 🤝 Contributing

@@ -18,7 +18,7 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     ax = ax / torch.sqrt((ax**2).sum())
     c = torch.cos(rad)
     s = torch.sin(rad)
-    R = torch.diag(torch.stack([c, c, c]))
+    R = torch.diag(torch.cat([c, c, c]))
     R = R + (1.0 - c) * torch.ger(ax, ax)
     K = torch.stack(
         [
@@ -36,6 +36,44 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     )
     R = R + K * s
     return R
+
+
+def _nhwc2nchw(x: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+    """
+    Convert NHWC to NCHW or HWC to CHW format.
+
+    Args:
+        x (torch.Tensor): Input tensor to be converted, either in NCHW or CHW format.
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: The converted tensor in NCHW or CHW format.
+    """
+    if x.dim() == 3:
+        x = x.permute(2, 0, 1) if channels_first else x
+    else:
+        x = x.permute(0, 3, 1, 2) if channels_first else x
+    return x
+
+
+def _nchw2nhwc(x: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+    """
+    Convert NCHW to NHWC or CHW to HWC format.
+
+    Args:
+        x (torch.Tensor): Input tensor to be converted, either in NCHW or CHW format.
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: The converted tensor in NHWC or HWC format.
+    """
+    if x.dim() == 3:
+        x = x.permute(1, 2, 0) if channels_first else x
+    else:
+        x = x.permute(0, 2, 3, 1) if channels_first else x
+    return x
 
 
 def _slice_chunk(
@@ -359,7 +397,8 @@ def grid_sample_wrap(
     Sample from an image with wrapped horizontal coordinates.
 
     Args:
-        image (torch.Tensor): Input image tensor of shape [H, W, C].
+        image (torch.Tensor): Input image tensor in the shape of [H, W, C] or
+            [N, H, W, C].
         coor_x (torch.Tensor): X coordinates for sampling.
         coor_y (torch.Tensor): Y coordinates for sampling.
         mode (str, optional): Sampling interpolation mode, 'nearest',
@@ -370,7 +409,19 @@ def grid_sample_wrap(
     Returns:
         torch.Tensor: Sampled image tensor.
     """
-    H, W, _ = image.shape  # H, W, C
+
+    assert image.dim() == 4 or image.dim() == 3
+    # Permute image to NCHW
+    if image.dim() == 3:
+        has_batch = False
+        H, W, _ = image.shape
+        # [H,W,C] -> [1,C,H,W]
+        img_t = image.permute(2, 0, 1).unsqueeze(0)
+    else:
+        has_batch = True
+        _, H, W, _ = image.shape
+        # [N,H,W,C] -> [N,C,H,W]
+        img_t = image.permute(0, 3, 1, 2)
 
     # coor_x, coor_y: [H_out, W_out]
     # We must create a grid for F.grid_sample:
@@ -385,9 +436,9 @@ def grid_sample_wrap(
     grid_y = (coor_y_clamped / (H - 1)) * 2 - 1
     grid = torch.stack([grid_x, grid_y], dim=-1)  # [H_out, W_out, 2]
 
-    # Permute image to NCHW
-    img_t = image.permute(2, 0, 1).unsqueeze(0)  # [1,C,H,W]
-    grid = grid.unsqueeze(0)  # [1,H_out,W_out,2]
+    grid = grid.unsqueeze(0)  # [1, H_out, W_out,2]
+    if has_batch:
+        grid = grid.repeat(img_t.shape[0], 1, 1, 1)
 
     # grid_sample: note that the code samples using (y, x) order if
     # align_corners=False, we must be careful:
@@ -408,8 +459,11 @@ def grid_sample_wrap(
             img_t, grid, mode=mode, padding_mode=padding_mode, align_corners=True
         )
 
-    # [1,C,H_out,W_out]
-    sampled = sampled.squeeze(0).permute(1, 2, 0)  # [H_out, W_out, C]
+    if has_batch:
+        sampled = sampled.permute(0, 2, 3, 1)
+    else:
+        # [1, C, H_out, W_out]
+        sampled = sampled.squeeze(0).permute(1, 2, 0)  # [H_out, W_out, C]
     return sampled
 
 
@@ -866,10 +920,10 @@ def e2c(
 def e2p(
     e_img: torch.Tensor,
     fov_deg: Union[float, Tuple[float, float]],
-    h_deg: float,
-    w_deg: float,
-    out_hw: Tuple[int, int],
-    in_rot_deg: float = 0,
+    h_deg: float = 0.0,
+    v_deg: float = 0.0,
+    out_hw: Tuple[int, int] = (512, 512),
+    in_rot_deg: float = 0.0,
     mode: str = "bilinear",
     channels_first: bool = True,
 ) -> torch.Tensor:
@@ -877,15 +931,19 @@ def e2p(
     Convert an equirectangular image to a perspective projection.
 
     Args:
-        e_img (torch.Tensor): Input equirectangular image tensor of shape
-            [C, H, W] or [H, W, C].
-        fov_deg (Union[float, Tuple[float, float]]): Field of view in degrees.
+        e_img (torch.Tensor): Input equirectangular image tensor in the shape
+            of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
+            or [B, H, W, C].
+        fov_deg (float or tuple of floats, optional): Field of view in degrees.
             Can be a single float or (h_fov, v_fov) tuple.
-        h_deg (float): Horizontal rotation angle in degrees.
-        w_deg (float): Vertical rotation angle in degrees.
-        out_hw (Tuple[int, int]): Output image height and width.
+        h_deg (float, optional): Horizontal rotation angle in degrees
+            (-Left/+Right). Default: 0.0
+        v_deg (float, optional): Vertical rotation angle in degrees
+            (-Down/+Up). Default: 0.0
+        out_hw (tuple of int, optional): The output image size specified as
+            a tuple of (height, width). Default: (512, 512)
         in_rot_deg (float, optional): Input rotation angle in degrees.
-            Default: 0
+            Default: 0.0
         mode (str, optional): Sampling interpolation mode, 'nearest',
             'bicubic', or 'bilinear'. Default: 'bilinear'.
         channels_first (bool, optional): The channel format of e_img. PyTorch
@@ -894,10 +952,14 @@ def e2p(
     Returns:
         torch.Tensor: Perspective projection image tensor.
     """
-    assert len(e_img.shape) == 3
+    assert e_img.dim() == 3 or e_img.dim() == 4
+
     # Ensure input is in HWC format for processing
-    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
-    h, w = e_img.shape[:2]
+    e_img = _nchw2nhwc(e_img)
+    if e_img.dim() == 3:
+        h, w = e_img.shape[:2]
+    else:
+        h, w, _ = e_img.shape[1:]
 
     if isinstance(fov_deg, (list, tuple)):
         h_fov_rad = fov_deg[0] * torch.pi / 180
@@ -909,13 +971,14 @@ def e2p(
 
     in_rot = in_rot_deg * torch.pi / 180
 
-    h_deg = -h_deg * torch.pi / 180
-    w_deg = w_deg * torch.pi / 180
+    u = -h_deg * torch.pi / 180
+    v = v_deg * torch.pi / 180
+
     xyz = xyzpers(
         h_fov_rad,
         v_fov_rad,
-        h_deg,
-        w_deg,
+        u,
+        v,
         out_hw,
         in_rot,
         device=e_img.device,
@@ -927,5 +990,103 @@ def e2p(
     pers_img = sample_equirec(e_img, coor_xy, mode)
 
     # Convert back to CHW if required
-    pers_img = pers_img.permute(2, 0, 1) if channels_first else pers_img
+    pers_img = _nhwc2nchw(pers_img, channels_first)
     return pers_img
+
+
+def e2e(
+    e_img: torch.Tensor,
+    roll: float = 0.0,
+    h_deg: float = 0.0,
+    v_deg: float = 0.0,
+    mode: str = "bilinear",
+    channels_first: bool = True,
+) -> torch.Tensor:
+    """
+    Apply rotations to an equirectangular image along the roll, pitch, and yaw
+    axes.
+
+    This function rotates an equirectangular image tensor along the roll
+    (x-axis), pitch (y-axis), and yaw (z-axis) axes, which correspond to
+    rotations that produce vertical and horizontal shifts in the image.
+
+    Args:
+        e_img (torch.Tensor): Input equirectangular image tensor in the shape
+            of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
+            or [B, H, W, C].
+        roll (float, optional): Roll angle in degrees. Rotates the image along
+            the x-axis. Roll directions: (-counter_clockwise/+clockwise).
+            Default: 0.0
+        h_deg (float, optional): Yaw angle in degrees (-left/+right). Rotates the
+            image along the z-axis to produce a horizontal shift. Default: 0.0
+        v_deg (float, optional): Pitch angle in degrees (-down/+up). Rotates the
+            image along the y-axis to produce a vertical shift. Default: 0.0
+        mode (str, optional): Sampling interpolation mode, 'nearest',
+            'bicubic', or 'bilinear'. Default: 'bilinear'.
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: Modified equirectangular image.
+    """
+
+    roll = roll
+    yaw = h_deg
+    pitch = v_deg
+
+    assert e_img.dim() == 3 or e_img.dim() == 4
+    # Ensure input is in HWC format for processing
+    e_img = _nchw2nhwc(e_img)
+    if e_img.dim() == 3:
+        h, w = e_img.shape[:2]
+    else:
+        h, w, _ = e_img.shape[1:]
+
+    # Convert angles to radians
+    roll_rad = torch.tensor(
+        [roll * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
+    )
+    pitch_rad = torch.tensor(
+        [pitch * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
+    )
+    yaw_rad = torch.tensor(
+        [yaw * torch.pi / 180.0], device=e_img.device, dtype=e_img.dtype
+    )
+
+    # Create base coordinates for the output image
+    y_range = torch.linspace(0, h - 1, h, device=e_img.device, dtype=e_img.dtype)
+    x_range = torch.linspace(0, w - 1, w, device=e_img.device, dtype=e_img.dtype)
+    grid_y, grid_x = torch.meshgrid(y_range, x_range, indexing="ij")
+
+    # Convert pixel coordinates to spherical coordinates
+    uv = coor2uv(torch.stack([grid_x, grid_y], dim=-1), h, w)
+
+    # Convert to unit vectors on sphere
+    xyz = uv2unitxyz(uv)
+
+    # Create rotation matrices
+    Rx = rotation_matrix(
+        roll_rad, torch.tensor([1.0, 0.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+    )
+    Ry = rotation_matrix(
+        yaw_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
+    )
+    Rz = rotation_matrix(
+        pitch_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+    )
+
+    # Apply rotations: first roll, then pitch, then yaw
+    xyz_rot = xyz @ Rx @ Ry @ Rz
+
+    # Convert back to UV coordinates
+    uv_rot = xyz2uv(xyz_rot)
+
+    # Convert UV coordinates to pixel coordinates
+    coor_xy = uv2coor(uv_rot, h, w)
+
+    # Sample from the input image
+    rotated = sample_equirec(e_img, coor_xy, mode=mode)
+
+    # Return to original channel format if needed
+    rotated = _nhwc2nchw(rotated, channels_first)
+    return rotated
