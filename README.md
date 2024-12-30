@@ -185,8 +185,8 @@ equi_image = load_image_to_tensor("examples/example_world_map_equirectangular.pn
 # Rotate an equirectangular image around one more axes
 rotated_equi = e2e(
     equi_image,                   # Equirectangular image
-    v_deg=90.0,                   # Vertical rotation/shift
-    h_deg=200.0,                  # Horizontal rotation/shift
+    h_deg=90.0,                   # Vertical rotation/shift
+    v_deg=200.0,                  # Horizontal rotation/shift
     roll=45.0,                    # Clockwise/counter clockwise rotation
     mode='bilinear'               # Sampling interpolation
 )
