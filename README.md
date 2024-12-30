@@ -239,6 +239,7 @@ Rotate an equirectangular image along one or more axes (roll, pitch, and yaw) to
 
 - **Returns**: A modified equirectangular image tensor.
 
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
