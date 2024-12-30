@@ -121,7 +121,7 @@ save_tensor_as_image(cubemap, "dice_cubemap.jpg")
 
 | Equirectangular Input | Cubemap 'Dice' Output |
 | :---: | :----: |
-| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_dice_cubemap.jpg) |
+| ![](examples/example_world_map_equirectangular.png) | ![](examples/example_world_map_dice_cubemap.png) |
 
 | Cubemap 'Horizon' Output |
 | :---: |
