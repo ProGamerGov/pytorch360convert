@@ -1200,6 +1200,77 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
         self.assertTrue(torch.allclose(result, expected_output))
 
+    def test_e2p_exact_batch(self) -> None:
+        batch = 2
+        channels = 3
+        out_hw = (2, 4)
+        x_input0 = torch.arange(1, 256).repeat(1, 256, 2).float()
+        x_input1 = torch.arange(1, 256).repeat(1, 256, 2).float() * 2.0
+        x_input2 = torch.arange(1, 256).repeat(1, 256, 2).float() * 4.0
+        x_input = torch.cat([x_input0, x_input1, x_input2], 0).repeat(batch, 1, 1, 1)
+
+        result = e2p(
+            x_input,
+            fov_deg=(40, 60),
+            h_deg=10,
+            w_deg=50,
+            out_hw=out_hw,
+            mode="bilinear",
+        )
+
+        a = torch.tensor(
+            [
+                [
+                    183.03811645507812,
+                    225.49948120117188,
+                    58.833866119384766,
+                    101.29522705078125,
+                ],
+                [
+                    243.3969268798828,
+                    5.628509521484375,
+                    23.704801559448242,
+                    40.9364013671875,
+                ],
+            ]
+        )
+        b = torch.tensor(
+            [
+                [
+                    366.07623291015625,
+                    450.99896240234375,
+                    117.66773223876953,
+                    202.5904541015625,
+                ],
+                [
+                    486.7938537597656,
+                    11.25701904296875,
+                    47.409603118896484,
+                    81.872802734375,
+                ],
+            ]
+        )
+        c = torch.tensor(
+            [
+                [
+                    732.1524658203125,
+                    901.9979248046875,
+                    235.33546447753906,
+                    405.180908203125,
+                ],
+                [
+                    973.5877075195312,
+                    22.5140380859375,
+                    94.81920623779297,
+                    163.74560546875,
+                ],
+            ]
+        )
+        expected_output = torch.stack([a, b, c]).repeat(batch, 1, 1, 1)
+
+        self.assertEqual(list(result.shape), [batch, channels, out_hw[0], out_hw[1]])
+        self.assertTrue(torch.allclose(result, expected_output))
+
     def test_c2e_stack_exact(self) -> None:
         expected_output = _get_c2e_4x4_exact_tensor()
         tile_w = 4
@@ -1349,6 +1420,20 @@ class TestFunctionsBaseTest(unittest.TestCase):
         test_equi = torch.ones([channels, face_width * 2, face_width * 4])
         e2e_jit = torch.jit.script(e2e)
         equi_img = e2e_jit(
+            test_equi,
+            h_deg=45,
+            w_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+
+    def test_e2e_batch(self) -> None:
+        batch = 2
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([batch, channels, face_width * 2, face_width * 4])
+        equi_img = e2e(
             test_equi,
             h_deg=45,
             w_deg=45,
