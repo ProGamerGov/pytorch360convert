@@ -1252,7 +1252,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, test_equi.dtype)
-        self.assertTrue(equi_img.required_grad)
+        self.assertTrue(equi_img.requires_grad)
 
     def test_e2e_gpu(self) -> None:
         if not torch.cuda.is_available():
