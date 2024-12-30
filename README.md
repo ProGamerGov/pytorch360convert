@@ -240,7 +240,7 @@ Converts a cubemap projection to an equirectangular image.
 Extracts a perspective view from an equirectangular image.
 
 - **Parameters**:
-  - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
+  - `e_img` (torch.Tensor): Equirectangular CHW or NCHW image tensor.
   - `fov_deg` (float or tuple of float): Field of view in degrees. If a single value is provided, it will be used for both horizontal and vertical degrees. If using a tuple, values are expected to be in following format: (h_fov_deg, v_fov_deg).
   - `h_deg` (float, optional): Vertical viewing angle in range [-pi/2, pi/2]. (-Down/+Up). Default: `0.0`
   - `w_deg` (float, optional): Horizontal viewing angle in range [-pi, pi]. (-Left/+Right). Default: `0.0`
@@ -256,7 +256,7 @@ Extracts a perspective view from an equirectangular image.
 Rotate an equirectangular image along one or more axes (roll, pitch, and yaw) to produce a horizontal shift, vertical shift, or to roll the image.
 
 - **Parameters**:
-  - `e_img` (torch.Tensor): Input equirectangular image tensor in the shape of: [C, H, W] or [H, W, C].
+  - `e_img` (torch.Tensor): Equirectangular CHW or NCHW image tensor.
   - `roll` (float, optional): Roll angle in degrees (-Counter_Clockwise/+Clockwise). Rotates the image along the x-axis. Default: `0.0`
   - `h_deg` (float, optional): Pitch angle in degrees (-Down/+Up). Rotates the image along the y-axis to produce a vertical shift. Default: `0.0` 
   - `w_deg` (float, optional): Yaw angle in degrees (-Left/+Right). Rotates the image along the z-axis to produce a horizontal shift. Default: `0.0`
