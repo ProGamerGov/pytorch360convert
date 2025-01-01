@@ -542,7 +542,7 @@ def sample_cubefaces(
     # Construct a single image indexing:
     # To handle tp indexing, let's create global_x = coor_x + tp * face_w
     # But tp might have shape (H_out,W_out)
-    global_x = coor_x + tp.float() * face_w
+    global_x = coor_x + tp.to(dtype=cube_h.dtype) * face_w
     global_y = coor_y
 
     return grid_sample_wrap(cube_h, global_x, global_y, mode=mode)
