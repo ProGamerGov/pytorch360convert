@@ -752,13 +752,13 @@ def c2e(
     # Ensure input is in HWC format for processing
     if channels_first:
         if cube_format == "list" and isinstance(cubemap, (list, tuple)):
-            cubemap = [r.permute(1, 2, 0) for r in cubemap]
+            cubemap = [_nchw2nhwc(r) for r in cubemap]
         elif cube_format == "dict" and torch.jit.isinstance(
             cubemap, Dict[str, torch.Tensor]
         ):
-            cubemap = {k: v.permute(1, 2, 0) for k, v in cubemap.items()}  # type: ignore
+            cubemap = {k: _nchw2nhwc(v) for k, v in cubemap.items()}  # type: ignore
         elif cube_format in ["horizon", "dice"] and isinstance(cubemap, torch.Tensor):
-            cubemap = cubemap.permute(1, 2, 0)
+            cubemap = _nchw2nhwc(cubemap)
         else:
             raise NotImplementedError("unknown cube_format and cubemap type")
 
@@ -826,7 +826,7 @@ def c2e(
     equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, mode)
 
     # Convert back to CHW if required
-    equirec = equirec.permute(2, 0, 1) if channels_first else equirec
+    equirec = _nhwc2nchw(equirec) if channels_first else equirec
     return equirec
 
 
@@ -872,7 +872,7 @@ def e2c(
         NotImplementedError: If an unknown cube_format is provided.
     """
     assert len(e_img.shape) == 3
-    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
+    e_img = _nchw2nhwc(e_img) if channels_first else e_img
     h, w = e_img.shape[:2]
 
     # returns [face_w, face_w*6, 3] in order
@@ -902,13 +902,13 @@ def e2c(
     if channels_first:
         if cube_format == "list" or cube_format == "stack":
             assert isinstance(result, (list, tuple))
-            result = [r.permute(2, 0, 1) for r in result]
+            result = [_nhwc2nchw(r) for r in result]
         elif cube_format == "dict":
             assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
-            result = {k: v.permute(2, 0, 1) for k, v in result.items()}  # type: ignore[union-attr]
+            result = {k: _nhwc2nchw(v) for k, v in result.items()}  # type: ignore[union-attr]
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)
-            result = result.permute(2, 0, 1)
+            result = _nhwc2nchw(result)
     if cube_format == "stack" and isinstance(result, (list, tuple)):
         result = torch.stack(result)
     return result
