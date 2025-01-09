@@ -579,6 +579,12 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     assert all(
         cube.shape == cube_list[0].shape for cube in cube_list
     ), "All cube faces should have the same shape."
+    assert all(
+        cube.device == cube_list[0].device for cube in cube_list
+    ), "All cube faces should have the same device."
+    assert all(
+        cube.dtype == cube_list[0].dtype for cube in cube_list
+    ), "All cube faces should have the same dtype."
     return torch.cat(cube_list, dim=1)
 
 
