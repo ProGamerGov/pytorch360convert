@@ -740,13 +740,21 @@ def c2e(
         NotImplementedError: If an unknown cube_format is provided.
     """
 
-    if cube_format == "stack":
-        assert (
-            isinstance(cubemap, torch.Tensor)
-            and len(cubemap.shape) == 4
-            and cubemap.shape[0] == 6
-        )
-        cubemap = [cubemap[i] for i in range(cubemap.shape[0])]
+    if cubemap[0].dim() == 4 or cubemap[0].dim() == 5:
+        if cubemap[0].dim() == 4:
+            assert (
+                isinstance(cubemap, torch.Tensor)
+                and len(cubemap.shape) == 4
+                and cubemap.shape[0] == 6
+            )
+            cubemap = [cubemap[i] for i in range(cubemap.shape[0])]
+        else:
+            assert (
+                isinstance(cubemap, torch.Tensor)
+                and len(cubemap.shape) == 5
+                and cubemap.shape[1] == 6
+            )
+            cubemap = [cubemap[:, i] for i in range(cubemap.shape[1])]
         cube_format = "list"
 
     # Ensure input is in HWC format for processing
