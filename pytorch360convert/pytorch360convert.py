@@ -826,7 +826,7 @@ def c2e(
     equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, mode)
 
     # Convert back to CHW if required
-    equirec = equirec.permute(2, 0, 1) if channels_first else equirec
+    equirec = _nhwc2nchw(equirec) if channels_first else equirec
     return equirec
 
 
@@ -875,7 +875,7 @@ def e2c(
         e_img.dim() == 3
     ), f"e_img should be in the shape of [C,H,W] or [H,W,C], got {e_img.shape}"
 
-    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
+    e_img = _nchw2nhwc(e_img) if channels_first else e_img
     h, w = e_img.shape[:2]
 
     # returns [face_w, face_w*6, 3] in order
