@@ -879,9 +879,13 @@ def e2c(
     Raises:
         NotImplementedError: If an unknown cube_format is provided.
     """
-    assert len(e_img.shape) == 3
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
+
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    h, w = e_img.shape[:2]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
@@ -957,14 +961,14 @@ def e2p(
     Returns:
         torch.Tensor: Perspective projection image tensor.
     """
-    assert e_img.dim() == 3 or e_img.dim() == 4
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
 
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    if e_img.dim() == 3:
-        h, w = e_img.shape[:2]
-    else:
-        h, w, _ = e_img.shape[1:]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     if isinstance(fov_deg, (list, tuple)):
         h_fov_rad = fov_deg[0] * torch.pi / 180
@@ -1039,13 +1043,14 @@ def e2e(
     yaw = h_deg
     pitch = v_deg
 
-    assert e_img.dim() == 3 or e_img.dim() == 4
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
+
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    if e_img.dim() == 3:
-        h, w = e_img.shape[:2]
-    else:
-        h, w, _ = e_img.shape[1:]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     # Convert angles to radians
     roll_rad = torch.tensor(
