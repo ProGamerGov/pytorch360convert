@@ -871,9 +871,10 @@ def e2c(
     Raises:
         NotImplementedError: If an unknown cube_format is provided.
     """
-    assert (
-        e_img.dim() == 3
-    ), f"e_img should be in the shape of [C,H,W] or [H,W,C], got {e_img.shape}"
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
 
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
     h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
