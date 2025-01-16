@@ -876,7 +876,7 @@ def e2c(
     ), f"e_img should be in the shape of [C,H,W] or [H,W,C], got {e_img.shape}"
 
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    h, w = e_img.shape[:2]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
@@ -959,10 +959,7 @@ def e2p(
 
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    if e_img.dim() == 3:
-        h, w = e_img.shape[:2]
-    else:
-        h, w, _ = e_img.shape[1:]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     if isinstance(fov_deg, (list, tuple)):
         h_fov_rad = fov_deg[0] * torch.pi / 180
@@ -1044,10 +1041,7 @@ def e2e(
 
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    if e_img.dim() == 3:
-        h, w = e_img.shape[:2]
-    else:
-        h, w, _ = e_img.shape[1:]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     # Convert angles to radians
     roll_rad = torch.tensor(
