@@ -952,9 +952,10 @@ def e2p(
     Returns:
         torch.Tensor: Perspective projection image tensor.
     """
-    assert (
-        e_img.dim() == 3 or e_img.dim() == 4
-    ), f"e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], or [H,W,C], got {e_img.shape}"
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        f"e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C],"
+        + " or [H,W,C], got {e_img.shape}"
+    )
 
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
@@ -1036,9 +1037,10 @@ def e2e(
     yaw = h_deg
     pitch = v_deg
 
-    assert (
-        e_img.dim() == 3 or e_img.dim() == 4
-    ), f"e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], or [H,W,C], got {e_img.shape}"
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        f"e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C],"
+        + " or [H,W,C], got {e_img.shape}"
+    )
 
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
