@@ -544,14 +544,15 @@ def cube_h2list(cube_h: torch.Tensor) -> List[torch.Tensor]:
 
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor in the
-            shape of: [w, w*6, C].
+            shape of: [w, w*6, C] or [B, w, w*6, C].
 
     Returns:
         List[torch.Tensor]: List of cube face tensors in the order of:
             ['Front', 'Right', 'Back', 'Left', 'Up', 'Down']
     """
-    w = cube_h.shape[0]
-    return [cube_h[:, i * w : (i + 1) * w, :] for i in range(6)]
+    assert cube_h.dim() == 3 or cube_h.dim() == 4
+    w = cube_h.shape[0] if cube_h.dim() == 3 else cube_h.shape[1]
+    return [cube_h[..., i * w: (i + 1) * w, :] for i in range(6)]
 
 
 def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
@@ -568,6 +569,12 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     assert all(
         cube.shape == cube_list[0].shape for cube in cube_list
     ), "All cube faces should have the same shape."
+    assert all(
+        cube.device == cube_list[0].device for cube in cube_list
+    ), "All cube faces should have the same device."
+    assert all(
+        cube.dtype == cube_list[0].dtype for cube in cube_list
+    ), "All cube faces should have the same dtype."
     return torch.cat(cube_list, dim=1)
 
 
