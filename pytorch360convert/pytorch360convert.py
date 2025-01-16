@@ -954,7 +954,7 @@ def e2p(
     """
     assert e_img.dim() == 3 or e_img.dim() == 4, (
         f"e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C],"
-        + " or [H,W,C], got {e_img.shape}"
+        + " or [H,W,C], got shape of: {e_img.shape}"
     )
 
     # Ensure input is in HWC format for processing
@@ -1039,7 +1039,7 @@ def e2e(
 
     assert e_img.dim() == 3 or e_img.dim() == 4, (
         f"e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C],"
-        + " or [H,W,C], got {e_img.shape}"
+        + " or [H,W,C], got shape of: {e_img.shape}"
     )
 
     # Ensure input is in HWC format for processing
