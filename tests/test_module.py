@@ -165,23 +165,13 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
     def test_nhwc_to_nchw_channels_first(self) -> None:
         input_tensor = torch.rand(2, 3, 4, 5)
-        converted_tensor = _nhwc2nchw(input_tensor, channels_first=True)
+        converted_tensor = _nhwc2nchw(input_tensor)
         self.assertEqual(converted_tensor.shape, (2, 5, 3, 4))
-
-    def test_nhwc_to_nchw_channels_last(self) -> None:
-        input_tensor = torch.rand(2, 3, 4, 5)
-        converted_tensor = _nhwc2nchw(input_tensor, channels_first=False)
-        self.assertEqual(converted_tensor.shape, (2, 3, 4, 5))
 
     def test_nchw_to_nhwc_channels_first(self) -> None:
         input_tensor = torch.rand(2, 5, 3, 4)
-        converted_tensor = _nchw2nhwc(input_tensor, channels_first=True)
+        converted_tensor = _nchw2nhwc(input_tensor)
         self.assertEqual(converted_tensor.shape, (2, 3, 4, 5))
-
-    def test_nchw_to_nhwc_channels_last(self) -> None:
-        input_tensor = torch.rand(2, 5, 3, 4)
-        converted_tensor = _nchw2nhwc(input_tensor, channels_first=False)
-        self.assertEqual(converted_tensor.shape, (2, 5, 3, 4))
 
     def test_slice_chunk_default(self) -> None:
         index = 2
