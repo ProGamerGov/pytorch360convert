@@ -905,13 +905,13 @@ def e2c(
     if channels_first:
         if cube_format == "list" or cube_format == "stack":
             assert isinstance(result, (list, tuple))
-            result = [r.permute(2, 0, 1) for r in result]
+            result = [_nhwc2nchw(r) for r in result]
         elif cube_format == "dict":
             assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
-            result = {k: v.permute(2, 0, 1) for k, v in result.items()}  # type: ignore[union-attr]
+            result = {k: _nhwc2nchw(v) for k, v in result.items()}  # type: ignore[union-attr]
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)
-            result = result.permute(2, 0, 1)
+            result = _nhwc2nchw(result)
     if cube_format == "stack" and isinstance(result, (list, tuple)):
         result = torch.stack(result)
     return result
