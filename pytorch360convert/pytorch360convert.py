@@ -38,42 +38,32 @@ def rotation_matrix(rad: torch.Tensor, ax: torch.Tensor) -> torch.Tensor:
     return R
 
 
-def _nhwc2nchw(x: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+def _nhwc2nchw(x: torch.Tensor) -> torch.Tensor:
     """
     Convert NHWC to NCHW or HWC to CHW format.
 
     Args:
         x (torch.Tensor): Input tensor to be converted, either in NCHW or CHW format.
-        channels_first (bool, optional): The channel format of e_img. PyTorch
-            uses channels first. Default: 'True'
 
     Returns:
         torch.Tensor: The converted tensor in NCHW or CHW format.
     """
-    if x.dim() == 3:
-        x = x.permute(2, 0, 1) if channels_first else x
-    else:
-        x = x.permute(0, 3, 1, 2) if channels_first else x
-    return x
+    assert x.dim() == 3 or x.dim() == 4
+    return x.permute(2, 0, 1) if x.dim() == 3 else x.permute(0, 3, 1, 2)
 
 
-def _nchw2nhwc(x: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+def _nchw2nhwc(x: torch.Tensor) -> torch.Tensor:
     """
     Convert NCHW to NHWC or CHW to HWC format.
 
     Args:
         x (torch.Tensor): Input tensor to be converted, either in NCHW or CHW format.
-        channels_first (bool, optional): The channel format of e_img. PyTorch
-            uses channels first. Default: 'True'
 
     Returns:
         torch.Tensor: The converted tensor in NHWC or HWC format.
     """
-    if x.dim() == 3:
-        x = x.permute(1, 2, 0) if channels_first else x
-    else:
-        x = x.permute(0, 2, 3, 1) if channels_first else x
-    return x
+    assert x.dim() == 3 or x.dim() == 4
+    return x.permute(1, 2, 0) if x.dim() == 3 else x.permute(0, 2, 3, 1)
 
 
 def _slice_chunk(
@@ -554,14 +544,15 @@ def cube_h2list(cube_h: torch.Tensor) -> List[torch.Tensor]:
 
     Args:
         cube_h (torch.Tensor): Horizontal cube representation tensor in the
-            shape of: [w, w*6, C].
+            shape of: [w, w*6, C] or [B, w, w*6, C].
 
     Returns:
         List[torch.Tensor]: List of cube face tensors in the order of:
             ['Front', 'Right', 'Back', 'Left', 'Up', 'Down']
     """
-    w = cube_h.shape[0]
-    return [cube_h[:, i * w : (i + 1) * w, :] for i in range(6)]
+    assert cube_h.dim() == 3 or cube_h.dim() == 4
+    w = cube_h.shape[0] if cube_h.dim() == 3 else cube_h.shape[1]
+    return [cube_h[..., i * w : (i + 1) * w, :] for i in range(6)]
 
 
 def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
@@ -578,6 +569,12 @@ def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
     assert all(
         cube.shape == cube_list[0].shape for cube in cube_list
     ), "All cube faces should have the same shape."
+    assert all(
+        cube.device == cube_list[0].device for cube in cube_list
+    ), "All cube faces should have the same device."
+    assert all(
+        cube.dtype == cube_list[0].dtype for cube in cube_list
+    ), "All cube faces should have the same dtype."
     return torch.cat(cube_list, dim=1)
 
 
@@ -955,7 +952,7 @@ def e2p(
     assert e_img.dim() == 3 or e_img.dim() == 4
 
     # Ensure input is in HWC format for processing
-    e_img = _nchw2nhwc(e_img)
+    e_img = _nchw2nhwc(e_img) if channels_first else e_img
     if e_img.dim() == 3:
         h, w = e_img.shape[:2]
     else:
@@ -990,7 +987,7 @@ def e2p(
     pers_img = sample_equirec(e_img, coor_xy, mode)
 
     # Convert back to CHW if required
-    pers_img = _nhwc2nchw(pers_img, channels_first)
+    pers_img = _nhwc2nchw(pers_img) if channels_first else pers_img
     return pers_img
 
 
@@ -1036,7 +1033,7 @@ def e2e(
 
     assert e_img.dim() == 3 or e_img.dim() == 4
     # Ensure input is in HWC format for processing
-    e_img = _nchw2nhwc(e_img)
+    e_img = _nchw2nhwc(e_img) if channels_first else e_img
     if e_img.dim() == 3:
         h, w = e_img.shape[:2]
     else:
@@ -1088,5 +1085,5 @@ def e2e(
     rotated = sample_equirec(e_img, coor_xy, mode=mode)
 
     # Return to original channel format if needed
-    rotated = _nhwc2nchw(rotated, channels_first)
+    rotated = _nhwc2nchw(rotated) if channels_first else rotated
     return rotated
