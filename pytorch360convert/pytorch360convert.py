@@ -826,7 +826,7 @@ def c2e(
     equirec = sample_cubefaces(cube_faces, tp, coor_y, coor_x, mode)
 
     # Convert back to CHW if required
-    equirec = equirec.permute(2, 0, 1) if channels_first else equirec
+    equirec = _nhwc2nchw(equirec) if channels_first else equirec
     return equirec
 
 
@@ -871,9 +871,13 @@ def e2c(
     Raises:
         NotImplementedError: If an unknown cube_format is provided.
     """
-    assert len(e_img.shape) == 3
-    e_img = e_img.permute(1, 2, 0) if channels_first else e_img
-    h, w = e_img.shape[:2]
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
+
+    e_img = _nchw2nhwc(e_img) if channels_first else e_img
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
@@ -902,13 +906,13 @@ def e2c(
     if channels_first:
         if cube_format == "list" or cube_format == "stack":
             assert isinstance(result, (list, tuple))
-            result = [r.permute(2, 0, 1) for r in result]
+            result = [_nhwc2nchw(r) for r in result]
         elif cube_format == "dict":
             assert torch.jit.isinstance(result, Dict[str, torch.Tensor])
-            result = {k: v.permute(2, 0, 1) for k, v in result.items()}  # type: ignore[union-attr]
+            result = {k: _nhwc2nchw(v) for k, v in result.items()}  # type: ignore[union-attr]
         elif cube_format in ["horizon", "dice"]:
             assert isinstance(result, torch.Tensor)
-            result = result.permute(2, 0, 1)
+            result = _nhwc2nchw(result)
     if cube_format == "stack" and isinstance(result, (list, tuple)):
         result = torch.stack(result)
     return result
@@ -949,14 +953,14 @@ def e2p(
     Returns:
         torch.Tensor: Perspective projection image tensor.
     """
-    assert e_img.dim() == 3 or e_img.dim() == 4
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
 
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    if e_img.dim() == 3:
-        h, w = e_img.shape[:2]
-    else:
-        h, w, _ = e_img.shape[1:]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     if isinstance(fov_deg, (list, tuple)):
         h_fov_rad = fov_deg[0] * torch.pi / 180
@@ -1031,13 +1035,14 @@ def e2e(
     yaw = h_deg
     pitch = v_deg
 
-    assert e_img.dim() == 3 or e_img.dim() == 4
+    assert e_img.dim() == 3 or e_img.dim() == 4, (
+        "e_img should be in the shape of [N,C,H,W], [C,H,W], [N,H,W,C], "
+        f"or [H,W,C], got shape of: {e_img.shape}"
+    )
+
     # Ensure input is in HWC format for processing
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
-    if e_img.dim() == 3:
-        h, w = e_img.shape[:2]
-    else:
-        h, w, _ = e_img.shape[1:]
+    h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
 
     # Convert angles to radians
     roll_rad = torch.tensor(
