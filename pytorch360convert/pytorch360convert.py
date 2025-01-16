@@ -552,7 +552,7 @@ def cube_h2list(cube_h: torch.Tensor) -> List[torch.Tensor]:
     """
     assert cube_h.dim() == 3 or cube_h.dim() == 4
     w = cube_h.shape[0] if cube_h.dim() == 3 else cube_h.shape[1]
-    return [cube_h[..., i * w: (i + 1) * w, :] for i in range(6)]
+    return [cube_h[..., i * w : (i + 1) * w, :] for i in range(6)]
 
 
 def cube_list2h(cube_list: List[torch.Tensor]) -> torch.Tensor:
