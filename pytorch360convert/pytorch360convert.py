@@ -788,8 +788,6 @@ def c2e(
     h = face_w * 2 if h is None else h
     w = face_w * 4 if w is None else w
 
-    assert w % 8 == 0
-
     uv = equirect_uvgrid(h, w, device=device, dtype=dtype)
     u, v = uv[..., 0], uv[..., 1]
 
