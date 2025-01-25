@@ -763,7 +763,6 @@ def c2e(
         else:
             raise NotImplementedError("unknown cube_format and cubemap type")
 
-
     if cube_format == "horizon" and isinstance(cubemap, torch.Tensor):
         assert cubemap.dim() in [3, 4]
         cube_h = cubemap
@@ -773,7 +772,7 @@ def c2e(
     elif cube_format == "dict" and torch.jit.isinstance(
         cubemap, Dict[str, torch.Tensor]
     ):
-        assert all((v.dim() in [3, 4] for k, v in cubemap.items())  # type: ignore[union-attr]
+        assert all(v.dim() in [3, 4] for k, v in cubemap.items())  # type: ignore[union-attr]
         cube_h = cube_dict2h(cubemap)  # type: ignore[arg-type]
     elif cube_format == "dice" and isinstance(cubemap, torch.Tensor):
         assert len(cubemap.shape) in [3, 4]
@@ -786,7 +785,7 @@ def c2e(
     d = 1 if cube_h.dim() == 3 else 2
     device = cube_h.device
     dtype = cube_h.dtype
-    face_w = cube_h.shape[d-1]
+    face_w = cube_h.shape[d - 1]
     assert cube_h.shape[d] == face_w * 6
 
     h = face_w * 2 if h is None else h
