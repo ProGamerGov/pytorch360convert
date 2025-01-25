@@ -514,7 +514,7 @@ def sample_cubefaces(
     # coor_x, coor_y and tp.
     cube_faces_mod = cube_faces.clone()
 
-    d = 1 if cube_faces.dim() == 3 else 2
+    d = 1 if cube_faces.dim() == 4 else 2
     face_w = cube_faces_mod.shape[d]
     cube_h = torch.cat(
         [cube_faces_mod[i] for i in range(6)], dim=d
