@@ -514,9 +514,10 @@ def sample_cubefaces(
     # coor_x, coor_y and tp.
     cube_faces_mod = cube_faces.clone()
 
-    face_w = cube_faces_mod.shape[1]
+    d = 1 if cube_faces.dim() == 3 else 2
+    face_w = cube_faces_mod.shape[d]
     cube_h = torch.cat(
-        [cube_faces_mod[i] for i in range(6)], dim=1
+        [cube_faces_mod[i] for i in range(6)], dim=d
     )  # [face_w, face_w*6, C]
 
     # We need to map (tp, coor_y, coor_x) -> coordinates in cube_h
