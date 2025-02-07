@@ -841,8 +841,8 @@ def e2c(
     Args:
         e_img (torch.Tensor): Input equirectangular image tensor of shape
             [C, H, W] or [H, W, C].
-        face_w (int, optional): Width of each square cube shaped face.
-            Default: 256.
+        face_w (int, optional): Width of each square cube shaped face. If set to None,
+		    then face_w will be calculated as H // 2. Default: 256
         mode (str, optional): Sampling interpolation mode, 'nearest',
             'bicubic', or 'bilinear'. Default: 'bilinear'.
         cube_format (str, optional): The desired output cubemap format. Options
@@ -876,6 +876,7 @@ def e2c(
 
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
     h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
+    face_width = h // 2 if face_width is None else face_width
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
