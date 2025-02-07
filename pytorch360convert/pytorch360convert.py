@@ -436,14 +436,16 @@ def grid_sample_wrap(
     # PyTorch grid_sample expects grid in form (N, H_out, W_out, 2),
     # with grid[:,:,:,0] = x and grid[:,:,:,1] = y
 
-    if img_t.dtype == torch.float16 and img_t.device == torch.device("cpu"):
+    if (
+        img_t.dtype == torch.float16 or img_t.dtype == torch.bfloat16
+    ) and img_t.device == torch.device("cpu"):
         sampled = F.grid_sample(
             img_t.float(),
             grid.float(),
             mode=mode,
             padding_mode=padding_mode,
             align_corners=True,
-        ).half()
+        ).to(img_t.dtype)
     else:
         sampled = F.grid_sample(
             img_t, grid, mode=mode, padding_mode=padding_mode, align_corners=True
@@ -830,7 +832,7 @@ def c2e(
 
 def e2c(
     e_img: torch.Tensor,
-    face_w: int = 256,
+    face_w: Optional[int] = 256,
     mode: str = "bilinear",
     cube_format: str = "dice",
     channels_first: bool = True,
@@ -876,7 +878,7 @@ def e2c(
 
     e_img = _nchw2nhwc(e_img) if channels_first else e_img
     h, w = e_img.shape[:2] if e_img.dim() == 3 else e_img.shape[1:3]
-    face_width = h // 2 if face_width is None else face_width
+    face_w = h // 2 if face_w is None else face_w
 
     # returns [face_w, face_w*6, 3] in order
     # [Front, Right, Back, Left, Up, Down]
