@@ -880,6 +880,14 @@ class TestFunctionsBaseTest(unittest.TestCase):
         diff_fov = e2p(e_img, fov_hw, u_deg, v_deg, out_hw)
         self.assertEqual(list(diff_fov.shape), [channels, out_hw[0], out_hw[1]])
 
+    def test_e2c_stack_face_w_none(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(
+            test_faces, face_w=None, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+
     def test_e2c_stack_gpu(self) -> None:
         if not torch.cuda.is_available():
             raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
