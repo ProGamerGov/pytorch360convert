@@ -1770,7 +1770,9 @@ class TestFunctionsBaseTest(unittest.TestCase):
         dtype = torch.bfloat16
         channels = 4
         face_width = 512
-        test_equi = torch.ones([channels, face_width * 2, face_width * 4], dtype=dtype).cuda()
+        test_equi = torch.ones(
+            [channels, face_width * 2, face_width * 4], dtype=dtype
+        ).cuda()
         equi_img = e2e(
             test_equi,
             h_deg=45,
