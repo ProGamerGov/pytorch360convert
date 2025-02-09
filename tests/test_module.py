@@ -197,7 +197,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         width = 3
         offset = 0
         expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
-        result = _slice_chunk(index, width, offset)
+        result = _slice_chunk(index, width, offset, device=expected.device)
         torch.testing.assert_close(result, expected)
         self.assertTrue(result.is_cuda)
 
@@ -216,7 +216,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         index = 2
         face_w = 3
         expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
-        result = _face_slice(index, face_w)
+        result = _face_slice(index, face_w, device=expected.device)
         torch.testing.assert_close(result, expected)
         self.assertTrue(result.is_cuda)
 
