@@ -62,7 +62,7 @@ pip install .
 - Lossless conversion between image formats.
 - Supports different cubemap input formats (horizon, list, stack, dict, dice).
 - Configurable sampling modes (bilinear, nearest).
-- Supports different dtypes (float16, float32, float64).
+- Supports different dtypes (float16, float32, float64, bfloat16).
 - CPU support.
 - GPU acceleration.
 - Differentiable transformations for deep learning pipelines.
@@ -206,7 +206,7 @@ Converts an equirectangular image to a cubemap projection.
 
 - **Parameters**:
   - `e_img` (torch.Tensor): Equirectangular CHW image tensor.
-  - `face_w` (int, optional): Cube face width. Default: `256`.
+  - `face_w` (int, optional): Cube face width. If set to None, then face_w will be calculated as `<e_img_height> // 2`. Default: `None`.
   - `mode` (str, optional): Sampling interpolation mode. Options are `bilinear`, `bicubic`, and `nearest`. Default: `bilinear`
   - `cube_format` (str, optional): The desired output cubemap format. Options are `dict`, `list`, `horizon`, `stack`, and `dice`. Default: `dice`
     - `stack` (torch.Tensor): Stack of 6 faces, in the order of: ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'].

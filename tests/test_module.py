@@ -197,7 +197,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         width = 3
         offset = 0
         expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
-        result = _slice_chunk(index, width, offset)
+        result = _slice_chunk(index, width, offset, device=expected.device)
         torch.testing.assert_close(result, expected)
         self.assertTrue(result.is_cuda)
 
@@ -216,7 +216,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         index = 2
         face_w = 3
         expected = torch.tensor([6, 7, 8], dtype=torch.long).cuda()
-        result = _face_slice(index, face_w)
+        result = _face_slice(index, face_w, device=expected.device)
         torch.testing.assert_close(result, expected)
         self.assertTrue(result.is_cuda)
 
@@ -879,6 +879,12 @@ class TestFunctionsBaseTest(unittest.TestCase):
         fov_hw = (90.0, 60.0)
         diff_fov = e2p(e_img, fov_hw, u_deg, v_deg, out_hw)
         self.assertEqual(list(diff_fov.shape), [channels, out_hw[0], out_hw[1]])
+
+    def test_e2c_stack_face_w_none(self) -> None:
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], requires_grad=True)
+        cubic_img = e2c(test_faces, face_w=None, mode="bilinear", cube_format="stack")
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
 
     def test_e2c_stack_gpu(self) -> None:
         if not torch.cuda.is_available():
@@ -1657,3 +1663,129 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         self.assertEqual(result.shape, expected_output.shape)
         self.assertTrue(torch.allclose(result, expected_output))
+
+    def test_c2e_stack_bfloat16(self) -> None:
+        dtype = torch.bfloat16
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], dtype=dtype)
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        self.assertEqual(equi_img.dtype, dtype)
+
+    def test_e2c_stack_bfloat16(self) -> None:
+        dtype = torch.bfloat16
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], dtype=dtype)
+        cubic_img = e2c(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertEqual(cubic_img.dtype, dtype)  # type: ignore[union-attr]
+
+    def test_e2p_bfloat16(self) -> None:
+        # Create a simple test equirectangular image
+        dtype = torch.bfloat16
+        h, w = 64, 128
+        channels = 3
+        e_img = torch.zeros((channels, h, w), dtype=dtype)
+
+        fov_deg = 90.0
+        h_deg = 0.0
+        v_deg = 0.0
+        out_hw = (32, 32)
+
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
+
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+        self.assertEqual(result.dtype, dtype)
+
+    def test_e2e_bfloat16(self) -> None:
+        dtype = torch.bfloat16
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones([channels, face_width * 2, face_width * 4], dtype=dtype)
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, dtype)
+
+    def test_c2e_stack_bfloat16_cuda(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        dtype = torch.bfloat16
+        face_width = 512
+        test_faces = torch.ones([6, 3, face_width, face_width], dtype=dtype).cuda()
+        equi_img = c2e(
+            test_faces,
+            face_width * 2,
+            face_width * 4,
+            mode="bilinear",
+            cube_format="stack",
+        )
+        self.assertEqual(list(equi_img.shape), [3, face_width * 2, face_width * 4])
+        self.assertEqual(equi_img.dtype, dtype)
+        self.assertTrue(equi_img.is_cuda)
+
+    def test_e2c_stack_bfloat16_cuda(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        dtype = torch.bfloat16
+        face_width = 512
+        test_faces = torch.ones([3, face_width * 2, face_width * 4], dtype=dtype).cuda()
+        cubic_img = e2c(
+            test_faces, face_w=face_width, mode="bilinear", cube_format="stack"
+        )
+        self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
+        self.assertEqual(cubic_img.dtype, dtype)  # type: ignore[union-attr]
+        self.assertTrue(cubic_img.is_cuda)  # type: ignore[union-attr]
+
+    def test_e2p_bfloat16_cuda(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        # Create a simple test equirectangular image
+        dtype = torch.bfloat16
+        h, w = 64, 128
+        channels = 3
+        e_img = torch.zeros((channels, h, w), dtype=dtype).cuda()
+
+        fov_deg = 90.0
+        h_deg = 0.0
+        v_deg = 0.0
+        out_hw = (32, 32)
+
+        result = e2p(e_img, fov_deg, h_deg, v_deg, out_hw)
+
+        self.assertEqual(list(result.shape), [channels, out_hw[0], out_hw[1]])
+        self.assertEqual(result.dtype, dtype)
+        self.assertTrue(result.is_cuda)
+
+    def test_e2e_bfloat16_cuda(self) -> None:
+        if not torch.cuda.is_available():
+            raise unittest.SkipTest("Skipping CUDA test due to not supporting CUDA.")
+        dtype = torch.bfloat16
+        channels = 4
+        face_width = 512
+        test_equi = torch.ones(
+            [channels, face_width * 2, face_width * 4], dtype=dtype
+        ).cuda()
+        equi_img = e2e(
+            test_equi,
+            h_deg=45,
+            v_deg=45,
+            roll=25,
+            mode="bilinear",
+        )
+        self.assertEqual(list(equi_img.shape), list(test_equi.shape))
+        self.assertEqual(equi_img.dtype, dtype)
+        self.assertTrue(equi_img.is_cuda)
