@@ -102,7 +102,7 @@ def _face_slice(
     Returns:
         torch.Tensor: A tensor containing the slice of indices.
     """
-    return _slice_chunk(index, face_w, device)
+    return _slice_chunk(index, face_w, device=device)
 
 
 def xyzcube(
