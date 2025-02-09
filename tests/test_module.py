@@ -1750,7 +1750,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         )
         self.assertEqual(list(cubic_img.shape), [6, 3, face_width, face_width])  # type: ignore[union-attr]
         self.assertEqual(cubic_img.dtype, dtype)  # type: ignore[union-attr]
-        self.assertTrue(cubic_img.is_cuda)
+        self.assertTrue(cubic_img.is_cuda)  # type: ignore[union-attr]
 
     def test_e2p_bfloat16_cuda(self) -> None:
         if not torch.cuda.is_available():
