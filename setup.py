@@ -48,7 +48,7 @@ def _relative_to_full_link(long_description: str) -> str:
 
 
 # Use README.md as the long description
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 long_description = _relative_to_full_link(long_description)
 
