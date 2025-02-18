@@ -66,6 +66,7 @@ setup(
         "equirectangular",
         "cubemap",
         "image processing",
+        "python",
         "PyTorch",
         "photo sphere",
         "spherical photo",
@@ -74,6 +75,9 @@ setup(
         "360 photo",
         "360",
         "perspective",
+        "rotation",
+        "360 vr",
+        "vr 360",
     ],
     python_requires=">=3.7",
     install_requires=[
