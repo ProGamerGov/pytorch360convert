@@ -25,6 +25,7 @@ from pytorch360convert.pytorch360convert import (
     equirect_facetype,
     equirect_uvgrid,
     grid_sample_wrap,
+    pad_180_to_360,
     rotation_matrix,
     sample_cubefaces,
     uv2coor,
@@ -32,7 +33,6 @@ from pytorch360convert.pytorch360convert import (
     xyz2uv,
     xyzcube,
     xyzpers,
-    pad_180_to_360,
 )
 
 
