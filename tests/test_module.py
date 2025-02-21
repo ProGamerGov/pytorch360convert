@@ -1856,3 +1856,12 @@ class TestFunctionsBaseTest(unittest.TestCase):
         e_img = torch.ones(3, 4, 4, dtype=torch.float32, requires_grad=True)
         padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
         self.assertTrue(padded_img.requires_grad)
+
+    def test_pad_180_to_360_jit(self) -> None:
+        e_img = torch.ones(3, 4, 4)  # [C, H, W] = [3, 4, 4]
+        pad_180_to_360_jit = torch.jit.script(pad_180_to_360)
+        padded_img = pad_180_to_360_jit(e_img, fill_value=0.0, channels_first=True)
+        self.assertEqual(padded_img.shape, (3, 4, 8))
+        self.assertTrue(torch.all(padded_img[:, :, 0] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
