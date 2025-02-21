@@ -32,6 +32,7 @@ from pytorch360convert.pytorch360convert import (
     xyz2uv,
     xyzcube,
     xyzpers,
+    pad_180_to_360,
 )
 
 
