@@ -48,7 +48,7 @@ def _relative_to_full_link(long_description: str) -> str:
 
 
 # Use README.md as the long description
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 long_description = _relative_to_full_link(long_description)
 
@@ -66,6 +66,7 @@ setup(
         "equirectangular",
         "cubemap",
         "image processing",
+        "python",
         "PyTorch",
         "photo sphere",
         "spherical photo",
@@ -74,6 +75,9 @@ setup(
         "360 photo",
         "360",
         "perspective",
+        "rotation",
+        "360 vr",
+        "vr 360",
     ],
     python_requires=">=3.7",
     install_requires=[
