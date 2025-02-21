@@ -1789,3 +1789,69 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(list(equi_img.shape), list(test_equi.shape))
         self.assertEqual(equi_img.dtype, dtype)
         self.assertTrue(equi_img.is_cuda)
+
+    def test_pad_180_to_360_channels_first(self) -> None:
+        e_img = torch.ones(3, 4, 4)  # [C, H, W] = [3, 4, 4]
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+        self.assertEqual(padded_img.shape, (3, 4, 8))
+        self.assertTrue(torch.all(padded_img[:, :, 0] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
+
+    def test_pad_180_to_360_channels_last(self) -> None:
+        e_img = torch.ones(4, 4, 3)  # [H, W, C] = [4, 4, 3]
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=False)
+        self.assertEqual(padded_img.shape, (4, 8, 3))
+        self.assertTrue(torch.all(padded_img[:, 0, :] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, -1, :] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, 2:6, :] == 1.0))
+
+    def test_pad_180_to_360_batch(self) -> None:
+        e_img = torch.ones(2, 3, 4, 4)  # [B, C, H, W] = [2, 3, 4, 4]
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+        self.assertEqual(padded_img.shape, (2, 3, 4, 8))
+        self.assertTrue(torch.all(padded_img[:, :, :, 0] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, :, -1] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, :, 2:6] == 1.0))
+
+    def test_pad_180_to_360_gpu(self) -> None:
+        if torch.cuda.is_available():
+            e_img = torch.ones(3, 4, 4, device="cuda")  # [C, H, W] = [3, 4, 4]
+            padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+            self.assertTrue(padded_img.is_cuda)
+            self.assertEqual(padded_img.shape, (3, 4, 8))
+            self.assertTrue(torch.all(padded_img[:, :, 0] == 0.0))
+            self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
+            self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
+
+    def test_pad_180_to_360_float16(self) -> None:
+        e_img = torch.ones(3, 4, 4, dtype=torch.float16)
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+        self.assertEqual(padded_img.shape, (3, 4, 8))
+        self.assertEqual(padded_img.dtype, torch.float16)
+        self.assertTrue(torch.all(padded_img[:, :, 0] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
+
+    def test_pad_180_to_360_float64(self) -> None:
+        e_img = torch.ones(3, 4, 4, dtype=torch.float64)
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+        self.assertEqual(padded_img.shape, (3, 4, 8))
+        self.assertEqual(padded_img.dtype, torch.float64)
+        self.assertTrue(torch.all(padded_img[:, :, 0] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
+
+    def test_pad_180_to_360_bfloat16(self) -> None:
+        e_img = torch.ones(3, 4, 4, dtype=torch.bfloat16)
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+        self.assertEqual(padded_img.shape, (3, 4, 8))
+        self.assertEqual(padded_img.dtype, torch.bfloat16)
+        self.assertTrue(torch.all(padded_img[:, :, 0] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
+        self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
+
+    def test_pad_180_to_360_gradient(self) -> None:
+        e_img = torch.ones(3, 4, 4, dtype=torch.float32, requires_grad=True)
+        padded_img = pad_180_to_360(e_img, fill_value=0.0, channels_first=True)
+        self.assertTrue(padded_img.requires_grad)
