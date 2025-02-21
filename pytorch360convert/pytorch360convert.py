@@ -1092,3 +1092,48 @@ def e2e(
     # Return to original channel format if needed
     rotated = _nhwc2nchw(rotated) if channels_first else rotated
     return rotated
+
+
+def pad_180_to_360(
+    e_img: torch.Tensor, fill_value: float = 0.0, channels_first: bool = True
+) -> torch.Tensor:
+    """
+    Pads a 180 degree equirectangular image tensor with a shape of CHW or NCHW, to
+    make it a full 360 degree image, by padding to the left and right sides.
+
+    For an image of width W (covering 180 degrees), the full panorama requires the
+    total image width to be doubled. Padding is evenly split between the left and
+    right sides.
+
+    Args:
+        e_img (torch.Tensor): Input equirectangular image tensor in the shape
+            of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
+            or [B, H, W, C].
+        fill_value (int, float): The constant value for padding. Default: 0.0
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: The padded tensor.
+    """
+    assert e_img.dim() in [3, 4]
+    e_img = _nhwc2nchw(e_img) if not channels_first else e_img
+    H, W = e_img.shape[1:] if e_img.dim() == 3 else e_img.shape[2:]
+    pad_left = W // 2
+    pad_right = W - pad_left
+
+    if e_img.ndim == 3:
+        e_img_padded = F.pad(
+            e_img.unsqueeze(0), (pad_left, pad_right), mode="constant", value=fill_value
+        ).squeeze(0)
+    elif e_img.ndim == 4:
+        e_img_padded = F.pad(
+            e_img, (pad_left, pad_right), mode="constant", value=fill_value
+        )
+    else:
+        raise ValueError(
+            "e_img must be either 3D (CHW) or 4D (NCHW), got {e_img.shape}"
+        )
+
+    e_img_padded = _nchw2nhwc(e_img_padded) if not channels_first else e_img_padded
+    return e_img_padded
