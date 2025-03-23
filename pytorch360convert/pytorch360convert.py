@@ -382,8 +382,8 @@ def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
 
     Args:
         cube_faces (torch.Tensor): Tensor of shape [6, H, W, C] representing the 6
-		    faces. Expected face order is: FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4,
-			DOWN=5
+                    faces. Expected face order is: FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4,
+                        DOWN=5
 
     Returns:
         torch.Tensor: Padded tensor of shape [6, H+2, W+2, C]
