@@ -382,7 +382,7 @@ def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
 
     Args:
         cube_faces: Tensor of shape [6, H, W, C] representing the 6 faces. Expected
-		    face order is: FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4, DOWN=5
+                    face order is: FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4, DOWN=5
 
     Returns:
         Padded tensor of shape [6, H+2, W+2, C]
@@ -391,12 +391,14 @@ def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
     FRONT, RIGHT, BACK, LEFT, UP, DOWN = 0, 1, 2, 3, 4, 5
 
     # Create padded tensor with zeros
-    padded = torch.zeros(cube_faces.shape[0],
-                          cube_faces.shape[1] + 2,
-                          cube_faces.shape[2] + 2,
-                          cube_faces.shape[3],
-                          dtype=cube_faces.dtype,
-                          device=cube_faces.device)
+    padded = torch.zeros(
+        cube_faces.shape[0],
+        cube_faces.shape[1] + 2,
+        cube_faces.shape[2] + 2,
+        cube_faces.shape[3],
+        dtype=cube_faces.dtype,
+        device=cube_faces.device,
+    )
 
     # Copy original data to center of padded tensor
     padded[:, 1:-1, 1:-1, :] = cube_faces
