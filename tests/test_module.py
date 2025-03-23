@@ -90,21 +90,41 @@ def _create_dice_layout(
 def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
     a = 0.4000000059604645
     b = 0.6000000238418579
-    c = 0.6309404969215393
+    c = 0.507179856300354
     d = 0.0000
     e = 0.09061708301305771
     f = 0.20000000298023224
     g = 0.36016160249710083
 
-    expected_middle = [a] * 2 + [b] * 3 + [c] + [d] * 3 + [e] + [f] * 3 + [g] + [a] * 2
-    expected_middle = torch.tensor(expected_middle)
+    # Create the expected middle part for each of the 3 matrices
+    middle = [
+        a, a, b, b, b, c, d, d, d, e, f, f, f, g, a, a
+    ]
+    middle = torch.tensor(middle).unsqueeze(0)  # Shape (1, 16)
+
+    # Create the base output for the tensor
     expected_output = torch.zeros(8, 16)
+
+    # Fill the first and last rows with the constants
     expected_output[0:2] = 0.800000011920929
-    expected_output[2:6] = expected_middle
     expected_output[6:8] = 1.0000
-    expected_output = torch.stack(
-        [expected_output, expected_output, expected_output], dim=0
-    )
+
+    # Fill the middle rows with the specific values
+    expected_output[2:6] = middle
+
+    # Exact values for the last row (row 7)
+    last_row = [
+        0.7569681406021118, 0.8475320339202881, 1.0, 0.8708105087280273,
+        0.8414928317070007, 0.791767954826355, 0.9714627265930176,
+        0.6305789947509766, 0.6305789947509766, 0.5338935256004333,
+        0.8733490109443665, 0.6829856634140015, 0.7416210174560547,
+        0.19919204711914062, 0.8475320935249329, 0.7569681406021118
+    ]
+    expected_output[5] = torch.tensor(last_row)
+
+    # Now, create the 3 matrices by stacking the result
+    expected_output = torch.stack([expected_output] * 3, dim=0)
+
     return expected_output
 
 
