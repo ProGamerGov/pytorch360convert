@@ -393,7 +393,7 @@ def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
     padded = torch.zeros(cube_faces.shape[0],
                           cube_faces.shape[1] + 2,
                           cube_faces.shape[2] + 2,
-                          cube_faces.shape[3],  # Preserve channel dimension
+                          cube_faces.shape[3],
                           dtype=cube_faces.dtype,
                           device=cube_faces.device)
 
