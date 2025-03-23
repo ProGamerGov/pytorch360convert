@@ -1963,7 +1963,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         # Verify that the gradient exists and is not zero
         self.assertIsNotNone(cube_faces.grad)
         self.assertFalse(
-            torch.allclose(cube_faces.grad, torch.zeros_like(cube_faces.grad))
+            torch.allclose(cube_faces.grad, torch.zeros_like(cube_faces.grad))  # type: ignore[arg-type]
         )
 
     def test_pad_cube_faces_cuda(self) -> None:
