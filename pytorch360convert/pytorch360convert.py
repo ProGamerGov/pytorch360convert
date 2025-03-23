@@ -375,6 +375,75 @@ def coor2uv(coorxy: torch.Tensor, h: int, w: int) -> torch.Tensor:
     return torch.stack([u, v], dim=-1)
 
 
+def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
+    """
+    Adds 1 pixel of padding around each cube face, using pixels from the neighbouring
+    faces, for each face.
+
+    Args:
+        cube_faces (torch.Tensor): Tensor of shape [6, H, W, C] representing the 6
+                    faces. Expected face order is: FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4,
+                        DOWN=5
+
+    Returns:
+        torch.Tensor: Padded tensor of shape [6, H+2, W+2, C]
+    """
+    # Define face indices as constants instead of enum
+    FRONT, RIGHT, BACK, LEFT, UP, DOWN = 0, 1, 2, 3, 4, 5
+
+    # Create padded tensor with zeros
+    padded = torch.zeros(
+        cube_faces.shape[0],
+        cube_faces.shape[1] + 2,
+        cube_faces.shape[2] + 2,
+        cube_faces.shape[3],
+        dtype=cube_faces.dtype,
+        device=cube_faces.device,
+    )
+
+    # Copy original data to center of padded tensor
+    padded[:, 1:-1, 1:-1, :] = cube_faces
+
+    # Pad above/below
+    padded[FRONT, 0, 1:-1, :] = padded[UP, -2, 1:-1, :]
+    padded[FRONT, -1, 1:-1, :] = padded[DOWN, 1, 1:-1, :]
+
+    padded[RIGHT, 0, 1:-1, :] = padded[UP, 1:-1, -2, :].flip(0)
+    padded[RIGHT, -1, 1:-1, :] = padded[DOWN, 1:-1, -2, :]
+
+    padded[BACK, 0, 1:-1, :] = padded[UP, 1, 1:-1, :].flip(0)
+    padded[BACK, -1, 1:-1, :] = padded[DOWN, -2, 1:-1, :].flip(0)
+
+    padded[LEFT, 0, 1:-1, :] = padded[UP, 1:-1, 1, :]
+    padded[LEFT, -1, 1:-1, :] = padded[DOWN, 1:-1, 1, :].flip(0)
+
+    padded[UP, 0, 1:-1, :] = padded[BACK, 1, 1:-1, :].flip(0)
+    padded[UP, -1, 1:-1, :] = padded[FRONT, 1, 1:-1, :]
+
+    padded[DOWN, 0, 1:-1, :] = padded[FRONT, -2, 1:-1, :]
+    padded[DOWN, -1, 1:-1, :] = padded[BACK, -2, 1:-1, :].flip(0)
+
+    # Pad left/right
+    padded[FRONT, 1:-1, 0, :] = padded[LEFT, 1:-1, -2, :]
+    padded[FRONT, 1:-1, -1, :] = padded[RIGHT, 1:-1, 1, :]
+
+    padded[RIGHT, 1:-1, 0, :] = padded[FRONT, 1:-1, -2, :]
+    padded[RIGHT, 1:-1, -1, :] = padded[BACK, 1:-1, 1, :]
+
+    padded[BACK, 1:-1, 0, :] = padded[RIGHT, 1:-1, -2, :]
+    padded[BACK, 1:-1, -1, :] = padded[LEFT, 1:-1, 1, :]
+
+    padded[LEFT, 1:-1, 0, :] = padded[BACK, 1:-1, -2, :]
+    padded[LEFT, 1:-1, -1, :] = padded[FRONT, 1:-1, 1, :]
+
+    padded[UP, 1:-1, 0, :] = padded[LEFT, 1, 1:-1, :]
+    padded[UP, 1:-1, -1, :] = padded[RIGHT, 1, 1:-1, :].flip(0)
+
+    padded[DOWN, 1:-1, 0, :] = padded[LEFT, -2, 1:-1, :].flip(0)
+    padded[DOWN, 1:-1, -1, :] = padded[RIGHT, -2, 1:-1, :]
+    return padded
+
+
 def grid_sample_wrap(
     image: torch.Tensor,
     coor_x: torch.Tensor,
@@ -505,14 +574,15 @@ def sample_cubefaces(
     # cube_faces: [6, face_w, face_w, C]
     # We must sample according to tp (face index), coor_y, coor_x
     # First we must flatten all faces into a single big image (like cube_h)
-    # The original code tries to do complicated padding and wrapping.
-    # We'll try a simpler approach: we have tp that selects face.
     # We can do per-face sampling. Instead of map_coordinates
     # (tp, y, x), we know each pixel belongs to a certain face.
 
     # For differentiability and simplicity, let's do a trick:
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
+    cube_faces = pad_cube_faces(cube_faces)
+    coor_y = coor_y + 1
+    coor_x = coor_x + 1
     cube_faces_mod = cube_faces.clone()
 
     face_w = cube_faces_mod.shape[1]
