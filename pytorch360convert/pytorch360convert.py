@@ -611,6 +611,9 @@ def sample_cubefaces(
     # For differentiability and simplicity, let's do a trick:
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
+    coor_x = coor_x + 1
+    coor_y = coor_y + 1
+    cube_faces = pad_cube_faces(cube_faces)
     cube_faces_mod = cube_faces.clone()
 
     face_w = cube_faces_mod.shape[1]
