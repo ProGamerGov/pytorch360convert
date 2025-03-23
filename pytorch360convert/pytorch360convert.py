@@ -375,6 +375,104 @@ def coor2uv(coorxy: torch.Tensor, h: int, w: int) -> torch.Tensor:
     return torch.stack([u, v], dim=-1)
 
 
+def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
+    """
+    Adds 1 pixel of padding around each cube face.
+    
+    Args:
+        cube_faces: Tensor of shape [6, H, W] representing the 6 faces of a cube.
+                    Faces are ordered as: FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4, DOWN=5
+    
+    Returns:
+        Padded tensor of shape [6, H+2, W+2]
+    """
+    # Define face indices as constants instead of enum
+    FRONT, RIGHT, BACK, LEFT, UP, DOWN = 0, 1, 2, 3, 4, 5
+    
+    # Create padded tensor with zeros
+    padded = torch.zeros(cube_faces.shape[0], 
+                          cube_faces.shape[1] + 2, 
+                          cube_faces.shape[2] + 2,
+                          dtype=cube_faces.dtype,
+                          device=cube_faces.device)
+    
+    # Copy original data to center of padded tensor
+    padded[:, 1:-1, 1:-1] = cube_faces
+    
+    # Pad above/below
+    padded[FRONT, 0, 1:-1] = padded[UP, -2, 1:-1]
+    padded[FRONT, -1, 1:-1] = padded[DOWN, 1, 1:-1]
+    
+    padded[RIGHT, 0, 1:-1] = padded[UP, 1:-1, -2].flip(0)
+    padded[RIGHT, -1, 1:-1] = padded[DOWN, 1:-1, -2]
+    
+    padded[BACK, 0, 1:-1] = padded[UP, 1, 1:-1].flip(0)
+    padded[BACK, -1, 1:-1] = padded[DOWN, -2, 1:-1].flip(0)
+    
+    padded[LEFT, 0, 1:-1] = padded[UP, 1:-1, 1]
+    padded[LEFT, -1, 1:-1] = padded[DOWN, 1:-1, 1].flip(0)
+    
+    padded[UP, 0, 1:-1] = padded[BACK, 1, 1:-1].flip(0)
+    padded[UP, -1, 1:-1] = padded[FRONT, 1, 1:-1]
+    
+    padded[DOWN, 0, 1:-1] = padded[FRONT, -2, 1:-1]
+    padded[DOWN, -1, 1:-1] = padded[BACK, -2, 1:-1].flip(0)
+    
+    # Pad left/right
+    padded[FRONT, 1:-1, 0] = padded[LEFT, 1:-1, -2]
+    padded[FRONT, 1:-1, -1] = padded[RIGHT, 1:-1, 1]
+    
+    padded[RIGHT, 1:-1, 0] = padded[FRONT, 1:-1, -2]
+    padded[RIGHT, 1:-1, -1] = padded[BACK, 1:-1, 1]
+    
+    padded[BACK, 1:-1, 0] = padded[RIGHT, 1:-1, -2]
+    padded[BACK, 1:-1, -1] = padded[LEFT, 1:-1, 1]
+    
+    padded[LEFT, 1:-1, 0] = padded[BACK, 1:-1, -2]
+    padded[LEFT, 1:-1, -1] = padded[FRONT, 1:-1, 1]
+    
+    padded[UP, 1:-1, 0] = padded[LEFT, 1, 1:-1]
+    padded[UP, 1:-1, -1] = padded[RIGHT, 1, 1:-1].flip(0)
+    
+    padded[DOWN, 1:-1, 0] = padded[LEFT, -2, 1:-1].flip(0)
+    padded[DOWN, 1:-1, -1] = padded[RIGHT, -2, 1:-1]
+    
+    # Handle corners by averaging adjacent padded edges
+    # Top-left corners
+    padded[FRONT, 0, 0] = (padded[FRONT, 0, 1] + padded[FRONT, 1, 0]) / 2
+    padded[RIGHT, 0, 0] = (padded[RIGHT, 0, 1] + padded[RIGHT, 1, 0]) / 2
+    padded[BACK, 0, 0] = (padded[BACK, 0, 1] + padded[BACK, 1, 0]) / 2
+    padded[LEFT, 0, 0] = (padded[LEFT, 0, 1] + padded[LEFT, 1, 0]) / 2
+    padded[UP, 0, 0] = (padded[UP, 0, 1] + padded[UP, 1, 0]) / 2
+    padded[DOWN, 0, 0] = (padded[DOWN, 0, 1] + padded[DOWN, 1, 0]) / 2
+    
+    # Top-right corners
+    padded[FRONT, 0, -1] = (padded[FRONT, 0, -2] + padded[FRONT, 1, -1]) / 2
+    padded[RIGHT, 0, -1] = (padded[RIGHT, 0, -2] + padded[RIGHT, 1, -1]) / 2
+    padded[BACK, 0, -1] = (padded[BACK, 0, -2] + padded[BACK, 1, -1]) / 2
+    padded[LEFT, 0, -1] = (padded[LEFT, 0, -2] + padded[LEFT, 1, -1]) / 2
+    padded[UP, 0, -1] = (padded[UP, 0, -2] + padded[UP, 1, -1]) / 2
+    padded[DOWN, 0, -1] = (padded[DOWN, 0, -2] + padded[DOWN, 1, -1]) / 2
+    
+    # Bottom-left corners
+    padded[FRONT, -1, 0] = (padded[FRONT, -1, 1] + padded[FRONT, -2, 0]) / 2
+    padded[RIGHT, -1, 0] = (padded[RIGHT, -1, 1] + padded[RIGHT, -2, 0]) / 2
+    padded[BACK, -1, 0] = (padded[BACK, -1, 1] + padded[BACK, -2, 0]) / 2
+    padded[LEFT, -1, 0] = (padded[LEFT, -1, 1] + padded[LEFT, -2, 0]) / 2
+    padded[UP, -1, 0] = (padded[UP, -1, 1] + padded[UP, -2, 0]) / 2
+    padded[DOWN, -1, 0] = (padded[DOWN, -1, 1] + padded[DOWN, -2, 0]) / 2
+    
+    # Bottom-right corners
+    padded[FRONT, -1, -1] = (padded[FRONT, -1, -2] + padded[FRONT, -2, -1]) / 2
+    padded[RIGHT, -1, -1] = (padded[RIGHT, -1, -2] + padded[RIGHT, -2, -1]) / 2
+    padded[BACK, -1, -1] = (padded[BACK, -1, -2] + padded[BACK, -2, -1]) / 2
+    padded[LEFT, -1, -1] = (padded[LEFT, -1, -2] + padded[LEFT, -2, -1]) / 2
+    padded[UP, -1, -1] = (padded[UP, -1, -2] + padded[UP, -2, -1]) / 2
+    padded[DOWN, -1, -1] = (padded[DOWN, -1, -2] + padded[DOWN, -2, -1]) / 2
+    
+    return padded
+
+
 def grid_sample_wrap(
     image: torch.Tensor,
     coor_x: torch.Tensor,
