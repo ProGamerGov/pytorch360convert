@@ -26,6 +26,7 @@ from pytorch360convert.pytorch360convert import (
     equirect_uvgrid,
     grid_sample_wrap,
     pad_180_to_360,
+    pad_cube_faces,
     rotation_matrix,
     sample_cubefaces,
     uv2coor,
@@ -97,9 +98,7 @@ def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
     g = 0.36016160249710083
 
     # Create the expected middle part for each of the 3 matrices
-    middle = [
-        a, a, b, b, b, c, d, d, d, e, f, f, f, g, a, a
-    ]
+    middle = [a, a, b, b, b, c, d, d, d, e, f, f, f, g, a, a]
     middle = torch.tensor(middle).unsqueeze(0)  # Shape (1, 16)
 
     # Create the base output for the tensor
@@ -114,11 +113,22 @@ def _get_c2e_4x4_exact_tensor() -> torch.Tensor:
 
     # Exact values for the last row (row 7)
     last_row = [
-        0.7569681406021118, 0.8475320339202881, 1.0, 0.8708105087280273,
-        0.8414928317070007, 0.791767954826355, 0.9714627265930176,
-        0.6305789947509766, 0.6305789947509766, 0.5338935256004333,
-        0.8733490109443665, 0.6829856634140015, 0.7416210174560547,
-        0.19919204711914062, 0.8475320935249329, 0.7569681406021118
+        0.7569681406021118,
+        0.8475320339202881,
+        1.0,
+        0.8708105087280273,
+        0.8414928317070007,
+        0.791767954826355,
+        0.9714627265930176,
+        0.6305789947509766,
+        0.6305789947509766,
+        0.5338935256004333,
+        0.8733490109443665,
+        0.6829856634140015,
+        0.7416210174560547,
+        0.19919204711914062,
+        0.8475320935249329,
+        0.7569681406021118,
     ]
     expected_output[5] = torch.tensor(last_row)
 
