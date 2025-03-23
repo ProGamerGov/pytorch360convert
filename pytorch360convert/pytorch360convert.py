@@ -438,40 +438,6 @@ def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
 
     padded[DOWN, 1:-1, 0, :] = padded[LEFT, -2, 1:-1, :].flip(0)
     padded[DOWN, 1:-1, -1, :] = padded[RIGHT, -2, 1:-1, :]
-
-    # Handle corners by averaging adjacent padded edges
-    # Top-left corners
-    padded[FRONT, 0, 0, :] = (padded[FRONT, 0, 1, :] + padded[FRONT, 1, 0, :]) / 2
-    padded[RIGHT, 0, 0, :] = (padded[RIGHT, 0, 1, :] + padded[RIGHT, 1, 0, :]) / 2
-    padded[BACK, 0, 0, :] = (padded[BACK, 0, 1, :] + padded[BACK, 1, 0, :]) / 2
-    padded[LEFT, 0, 0, :] = (padded[LEFT, 0, 1, :] + padded[LEFT, 1, 0, :]) / 2
-    padded[UP, 0, 0, :] = (padded[UP, 0, 1, :] + padded[UP, 1, 0, :]) / 2
-    padded[DOWN, 0, 0, :] = (padded[DOWN, 0, 1, :] + padded[DOWN, 1, 0, :]) / 2
-
-    # Top-right corners
-    padded[FRONT, 0, -1, :] = (padded[FRONT, 0, -2, :] + padded[FRONT, 1, -1, :]) / 2
-    padded[RIGHT, 0, -1, :] = (padded[RIGHT, 0, -2, :] + padded[RIGHT, 1, -1, :]) / 2
-    padded[BACK, 0, -1, :] = (padded[BACK, 0, -2, :] + padded[BACK, 1, -1, :]) / 2
-    padded[LEFT, 0, -1, :] = (padded[LEFT, 0, -2, :] + padded[LEFT, 1, -1, :]) / 2
-    padded[UP, 0, -1, :] = (padded[UP, 0, -2, :] + padded[UP, 1, -1, :]) / 2
-    padded[DOWN, 0, -1, :] = (padded[DOWN, 0, -2, :] + padded[DOWN, 1, -1, :]) / 2
-
-    # Bottom-left corners
-    padded[FRONT, -1, 0, :] = (padded[FRONT, -1, 1, :] + padded[FRONT, -2, 0, :]) / 2
-    padded[RIGHT, -1, 0, :] = (padded[RIGHT, -1, 1, :] + padded[RIGHT, -2, 0, :]) / 2
-    padded[BACK, -1, 0, :] = (padded[BACK, -1, 1, :] + padded[BACK, -2, 0, :]) / 2
-    padded[LEFT, -1, 0, :] = (padded[LEFT, -1, 1, :] + padded[LEFT, -2, 0, :]) / 2
-    padded[UP, -1, 0, :] = (padded[UP, -1, 1, :] + padded[UP, -2, 0, :]) / 2
-    padded[DOWN, -1, 0, :] = (padded[DOWN, -1, 1, :] + padded[DOWN, -2, 0, :]) / 2
-
-    # Bottom-right corners
-    padded[FRONT, -1, -1, :] = (padded[FRONT, -1, -2, :] + padded[FRONT, -2, -1, :]) / 2
-    padded[RIGHT, -1, -1, :] = (padded[RIGHT, -1, -2, :] + padded[RIGHT, -2, -1, :]) / 2
-    padded[BACK, -1, -1, :] = (padded[BACK, -1, -2, :] + padded[BACK, -2, -1, :]) / 2
-    padded[LEFT, -1, -1, :] = (padded[LEFT, -1, -2, :] + padded[LEFT, -2, -1, :]) / 2
-    padded[UP, -1, -1, :] = (padded[UP, -1, -2, :] + padded[UP, -2, -1, :]) / 2
-    padded[DOWN, -1, -1, :] = (padded[DOWN, -1, -2, :] + padded[DOWN, -2, -1, :]) / 2
-
     return padded
 
 
