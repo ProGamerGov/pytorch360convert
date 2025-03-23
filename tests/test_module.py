@@ -177,10 +177,10 @@ class TestFunctionsBaseTest(unittest.TestCase):
         # Test with smaller dimensions for faster test
         height, width = 8, 8
         faces = _create_test_faces(height, width)
-        
+
         # Check shape
         self.assertEqual(faces.shape, (6, 3, height, width))
-        
+
         # Check that each face has the correct color
         expected_colors = [
             [0.0, 0.0, 0.0],
@@ -190,12 +190,12 @@ class TestFunctionsBaseTest(unittest.TestCase):
             [0.8, 0.8, 0.8],
             [1.0, 1.0, 1.0],
         ]
-        
+
         for face_idx, color in enumerate(expected_colors):
             # Get the first pixel of each face
             face_color = faces[face_idx, :, 0, 0].tolist()
             self.assertEqual(face_color, color)
-            
+
             # Check that the face is uniform
             self.assertTrue(torch.all(faces[face_idx, 0, :, :] == color[0]))
             self.assertTrue(torch.all(faces[face_idx, 1, :, :] == color[1]))
@@ -1925,155 +1925,169 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertTrue(torch.all(padded_img[:, :, -1] == 0.0))
         self.assertTrue(torch.all(padded_img[:, :, 2:6] == 1.0))
 
-    def _prepare_test_data_cube_padding(self, 
-                          height: int = 4, 
-                          width: int = 4, 
-                          channels: int = 3,
-                          dtype: torch.dtype = torch.float32,
-                          device: str = "cpu",
-                          requires_grad: bool = False) -> torch.Tensor:
+    def _prepare_test_data_cube_padding(
+        self,
+        height: int = 4,
+        width: int = 4,
+        channels: int = 3,
+        dtype: torch.dtype = torch.float32,
+        device: str = "cpu",
+        requires_grad: bool = False,
+    ) -> torch.Tensor:
         """Helper to create test cube faces with specific configuration"""
         # Create test faces where each face has a unique value
-        cube_faces = torch.zeros((6, height, width, channels), dtype=dtype, device=device)
-        
+        cube_faces = torch.zeros(
+            (6, height, width, channels), dtype=dtype, device=device
+        )
+
         # Set each face to a unique value for easy identification
         for face_idx in range(6):
             cube_faces[face_idx, :, :, :] = face_idx / 5.0  # Normalize to [0, 1]
-        
+
         if requires_grad:
             cube_faces.requires_grad_(True)
-            
+
         return cube_faces
-        
+
     def test_pad_cube_faces_shape(self) -> None:
         """Test that the output shape is correct"""
         height, width, channels = 4, 6, 3
         cube_faces = self._prepare_test_data_cube_padding(height, width, channels)
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         self.assertEqual(padded_faces.shape, (6, height + 2, width + 2, channels))
-        
+
     def test_pad_cube_faces_jit(self) -> None:
         """Test that the function works with torch.jit.script"""
         cube_faces = self._prepare_test_data_cube_padding(4, 4, 3)
-        
+
         # Script the function
         pad_cube_faces_jit = torch.jit.script(pad_cube_faces)
-        
+
         # Run the scripted function
         padded_faces = pad_cube_faces_jit(cube_faces)
-        
+
         # Verify output shape
         self.assertEqual(padded_faces.shape, (6, 6, 6, 3))
-        
+
         # Compare with non-scripted function
         expected_output = pad_cube_faces(cube_faces)
         self.assertTrue(torch.allclose(padded_faces, expected_output))
-        
+
     def test_pad_cube_faces_gradient(self) -> None:
         """Test that gradients flow through the function"""
         cube_faces = self._prepare_test_data_cube_padding(requires_grad=True)
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Check that requires_grad is preserved
         self.assertTrue(padded_faces.requires_grad)
-        
+
         # Test gradient flow by computing a loss and backpropagating
         loss = padded_faces.sum()
         loss.backward()
-        
+
         # Verify that the gradient exists and is not zero
         self.assertIsNotNone(cube_faces.grad)
-        self.assertFalse(torch.allclose(cube_faces.grad, torch.zeros_like(cube_faces.grad)))
-        
+        self.assertFalse(
+            torch.allclose(cube_faces.grad, torch.zeros_like(cube_faces.grad))
+        )
+
     def test_pad_cube_faces_cuda(self) -> None:
         """Test that the function works on CUDA device if available"""
         if not torch.cuda.is_available():
             self.skipTest("CUDA not available")
-            
+
         cube_faces = self._prepare_test_data_cube_padding(device="cuda")
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Check that the output is on the correct device
         self.assertTrue(padded_faces.is_cuda)
-        
+
         # Verify shape
         self.assertEqual(padded_faces.shape, (6, 6, 6, 3))
-        
+
     def test_pad_cube_faces_float16(self) -> None:
         """Test that the function works with float16 precision"""
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.float16)
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.float16)
-        
+
     def test_pad_cube_faces_float32(self) -> None:
         """Test that the function works with float32 precision"""
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.float32)
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.float32)
-        
+
     def test_pad_cube_faces_float64(self) -> None:
         """Test that the function works with float64 precision"""
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.float64)
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.float64)
-        
+
     def test_pad_cube_faces_bfloat16(self) -> None:
         """Test that the function works with bfloat16 precision"""
         # Skip if bfloat16 is not supported
-        if not hasattr(torch, 'bfloat16'):
+        if not hasattr(torch, "bfloat16"):
             self.skipTest("bfloat16 not supported in this PyTorch version")
-            
+
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.bfloat16)
-        
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.bfloat16)
-    
+
     def test_pad_cube_faces_exact_values(self) -> None:
         """Test the exact values of padded faces for a small input"""
         # Define small cube faces with easily identifiable values
         cube_faces = torch.zeros((6, 2, 2, 1))
-        
+
         # FRONT=0, RIGHT=1, BACK=2, LEFT=3, UP=4, DOWN=5
         for face_idx in range(6):
             # Set each face to its index value for easier verification
             cube_faces[face_idx, :, :, :] = face_idx
-            
+
         padded_faces = pad_cube_faces(cube_faces)
-        
+
         # Verify central values (should be unchanged)
         for face_idx in range(6):
-            self.assertTrue(torch.all(padded_faces[face_idx, 1:-1, 1:-1, :] == face_idx))
-        
+            self.assertTrue(
+                torch.all(padded_faces[face_idx, 1:-1, 1:-1, :] == face_idx)
+            )
+
         # Verify specific border values based on the padding logic
         # These assertions check that the padding values come from the correct neighboring faces
-        
+
         # Check FRONT face padding
         self.assertTrue(torch.all(padded_faces[0, 0, 1:-1, :] == 4))  # Top from UP
-        self.assertTrue(torch.all(padded_faces[0, -1, 1:-1, :] == 5))  # Bottom from DOWN
-        self.assertTrue(torch.all(padded_faces[0, 1:-1, 0, :] == 3))   # Left from LEFT
-        self.assertTrue(torch.all(padded_faces[0, 1:-1, -1, :] == 1))  # Right from RIGHT
-        
+        self.assertTrue(
+            torch.all(padded_faces[0, -1, 1:-1, :] == 5)
+        )  # Bottom from DOWN
+        self.assertTrue(torch.all(padded_faces[0, 1:-1, 0, :] == 3))  # Left from LEFT
+        self.assertTrue(
+            torch.all(padded_faces[0, 1:-1, -1, :] == 1)
+        )  # Right from RIGHT
+
         # Check additional values for other faces to verify correct padding
         # RIGHT face
-        self.assertTrue(torch.all(padded_faces[1, 1:-1, 0, :] == 0))   # Left from FRONT
-        
+        self.assertTrue(torch.all(padded_faces[1, 1:-1, 0, :] == 0))  # Left from FRONT
+
         # BACK face
         self.assertTrue(torch.all(padded_faces[2, 1:-1, -1, :] == 3))  # Right from LEFT
-        
+
         # UP face
-        self.assertTrue(torch.all(padded_faces[4, -1, 1:-1, :] == 0))  # Bottom from FRONT
+        self.assertTrue(
+            torch.all(padded_faces[4, -1, 1:-1, :] == 0)
+        )  # Bottom from FRONT
