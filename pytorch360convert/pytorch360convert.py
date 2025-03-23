@@ -374,6 +374,7 @@ def coor2uv(coorxy: torch.Tensor, h: int, w: int) -> torch.Tensor:
     v = -((coor_y + 0.5) / h - 0.5) * torch.pi
     return torch.stack([u, v], dim=-1)
 
+
 def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
     """
     Adds 1 pixel of padding around each cube face, using pixels from the neighbouring
