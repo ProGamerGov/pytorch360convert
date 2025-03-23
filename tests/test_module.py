@@ -172,6 +172,35 @@ class TestFunctionsBaseTest(unittest.TestCase):
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
 
+    def test_create_test_faces_helper(self) -> None:
+        """Test the helper function for creating test faces"""
+        # Test with smaller dimensions for faster test
+        height, width = 8, 8
+        faces = _create_test_faces(height, width)
+        
+        # Check shape
+        self.assertEqual(faces.shape, (6, 3, height, width))
+        
+        # Check that each face has the correct color
+        expected_colors = [
+            [0.0, 0.0, 0.0],
+            [0.2, 0.2, 0.2],
+            [0.4, 0.4, 0.4],
+            [0.6, 0.6, 0.6],
+            [0.8, 0.8, 0.8],
+            [1.0, 1.0, 1.0],
+        ]
+        
+        for face_idx, color in enumerate(expected_colors):
+            # Get the first pixel of each face
+            face_color = faces[face_idx, :, 0, 0].tolist()
+            self.assertEqual(face_color, color)
+            
+            # Check that the face is uniform
+            self.assertTrue(torch.all(faces[face_idx, 0, :, :] == color[0]))
+            self.assertTrue(torch.all(faces[face_idx, 1, :, :] == color[1]))
+            self.assertTrue(torch.all(faces[face_idx, 2, :, :] == color[2]))
+
     def test_rotation_matrix(self) -> None:
         # Test identity rotation (0 radians around any axis)
         axis = torch.tensor([1.0, 0.0, 0.0])
