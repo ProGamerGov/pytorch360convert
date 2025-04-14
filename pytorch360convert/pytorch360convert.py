@@ -399,7 +399,7 @@ def _pad_equirectangular(img: torch.Tensor) -> torch.Tensor:
     return padded
 
 
-def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
+def _pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
     """
     Adds 1 pixel of padding around each cube face, using pixels from the neighbouring
     faces, for each face.
@@ -605,7 +605,7 @@ def sample_cubefaces(
     # For differentiability and simplicity, let's do a trick:
     # Create a big image [face_w,face_w*6, C] (cube_h) and sample from it using
     # coor_x, coor_y and tp.
-    cube_faces = pad_cube_faces(cube_faces)
+    cube_faces = _pad_cube_faces(cube_faces)
     coor_y = coor_y + 1
     coor_x = coor_x + 1
     cube_faces_mod = cube_faces.clone()
