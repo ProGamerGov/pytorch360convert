@@ -375,6 +375,30 @@ def coor2uv(coorxy: torch.Tensor, h: int, w: int) -> torch.Tensor:
     return torch.stack([u, v], dim=-1)
 
 
+def _pad_equirectangular(img: torch.Tensor) -> torch.Tensor:
+    """Adds 1 pixel of padding above/below the image.
+
+    Args:
+        img (torch.Tensor): [H, W, C] or [B, H, W, C]
+
+    Returns:
+        torch.Tensor: [H+2, W, C] or [B, H+2, W, C]
+    """
+    if img.dim() == 3:
+        H, W, C = img.shape
+        top = torch.roll(img[0:1, :, :], shifts=W // 2, dims=1)
+        bottom = torch.roll(img[-1:, :, :], shifts=W // 2, dims=1)
+        padded = torch.cat([top, img, bottom], dim=0)
+    elif img.dim() == 4:
+        B, H, W, C = img.shape
+        top = torch.roll(img[:, 0:1, :, :], shifts=W // 2, dims=2)
+        bottom = torch.roll(img[:, -1:, :, :], shifts=W // 2, dims=2)
+        padded = torch.cat([top, img, bottom], dim=1)
+    else:
+        raise ValueError("Input must be [H, W, C] or [B, H, W, C]")
+    return padded
+
+
 def pad_cube_faces(cube_faces: torch.Tensor) -> torch.Tensor:
     """
     Adds 1 pixel of padding around each cube face, using pixels from the neighbouring
@@ -544,9 +568,10 @@ def sample_equirec(
     Returns:
         torch.Tensor: Sampled image tensor.
     """
+    padded_img = _pad_equirectangular(e_img)
     coor_x = coor_xy[..., 0]
-    coor_y = coor_xy[..., 1]
-    return grid_sample_wrap(e_img, coor_x, coor_y, mode=mode)
+    coor_y = coor_xy[..., 1] + 1
+    return grid_sample_wrap(padded_img, coor_x, coor_y, mode=mode)
 
 
 def sample_cubefaces(
