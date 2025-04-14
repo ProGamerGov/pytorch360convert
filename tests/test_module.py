@@ -10,6 +10,8 @@ from pytorch360convert.pytorch360convert import (
     _face_slice,
     _nchw2nhwc,
     _nhwc2nchw,
+    _pad_cube_faces,
+    _pad_equirectangular,
     _slice_chunk,
     c2e,
     coor2uv,
@@ -26,8 +28,6 @@ from pytorch360convert.pytorch360convert import (
     equirect_uvgrid,
     grid_sample_wrap,
     pad_180_to_360,
-    _pad_cube_faces,
-    _pad_equirectangular,
     rotation_matrix,
     sample_cubefaces,
     uv2coor,
@@ -151,18 +151,29 @@ def _get_e2c_4x4_exact_tensor() -> torch.Tensor:
     l = [[0.0, 0.29516735672950745, 0.7048328518867493, 1.0]] * 4
     u = [
         [0.0, 3.0, 3.0, 3.0],
-        [0.29516735672950745, 0.43912434577941895, 2.560875654220581, 2.7048325538635254],
+        [
+            0.29516735672950745,
+            0.43912434577941895,
+            2.560875654220581,
+            2.7048325538635254,
+        ],
         [0.7048328518867493, 1.439124345779419, 1.560875654220581, 2.2951672077178955],
         [1.0, 1.2951672077178955, 1.7048327922821045, 2.0],
     ]
     d = [
         [1.0, 1.2951672077178955, 1.7048327922821045, 2.0],
         [0.7048328518867493, 1.439124584197998, 1.560875415802002, 2.2951672077178955],
-        [0.29516735672950745, 0.43912458419799805, 2.560875415802002, 2.7048325538635254],
+        [
+            0.29516735672950745,
+            0.43912458419799805,
+            2.560875415802002,
+            2.7048325538635254,
+        ],
         [0.0, 3.0, 3.0, 3.0],
     ]
 
-    def tile(face): return torch.tensor(face).repeat(3, 1, 1)
+    def tile(face):
+        return torch.tensor(face).repeat(3, 1, 1)
 
     return torch.stack([tile(f), tile(r), tile(b), tile(l), tile(u), tile(d)])
 
