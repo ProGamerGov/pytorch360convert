@@ -26,7 +26,8 @@ from pytorch360convert.pytorch360convert import (
     equirect_uvgrid,
     grid_sample_wrap,
     pad_180_to_360,
-    pad_cube_faces,
+    _pad_cube_faces,
+	_pad_equirectangular,
     rotation_matrix,
     sample_cubefaces,
     uv2coor,
@@ -1926,7 +1927,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         height, width, channels = 4, 4, 3
         cube_faces = self._prepare_test_data_cube_padding(height, width, channels)
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         self.assertEqual(padded_faces.shape, (6, height + 2, width + 2, channels))
 
@@ -1935,7 +1936,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         cube_faces = self._prepare_test_data_cube_padding(4, 4, 3)
 
         # Script the function
-        pad_cube_faces_jit = torch.jit.script(pad_cube_faces)
+        pad_cube_faces_jit = torch.jit.script(_pad_cube_faces)
 
         # Run the scripted function
         padded_faces = pad_cube_faces_jit(cube_faces)
@@ -1944,14 +1945,14 @@ class TestFunctionsBaseTest(unittest.TestCase):
         self.assertEqual(padded_faces.shape, (6, 6, 6, 3))
 
         # Compare with non-scripted function
-        expected_output = pad_cube_faces(cube_faces)
+        expected_output = _pad_cube_faces(cube_faces)
         self.assertTrue(torch.allclose(padded_faces, expected_output))
 
     def test_pad_cube_faces_gradient(self) -> None:
         """Test that gradients flow through the function"""
         cube_faces = self._prepare_test_data_cube_padding(requires_grad=True)
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Check that requires_grad is preserved
         self.assertTrue(padded_faces.requires_grad)
@@ -1973,7 +1974,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         cube_faces = self._prepare_test_data_cube_padding(device="cuda")
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Check that the output is on the correct device
         self.assertTrue(padded_faces.is_cuda)
@@ -1985,7 +1986,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         """Test that the function works with float16 precision"""
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.float16)
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.float16)
@@ -1994,7 +1995,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         """Test that the function works with float32 precision"""
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.float32)
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.float32)
@@ -2003,7 +2004,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
         """Test that the function works with float64 precision"""
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.float64)
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.float64)
@@ -2016,7 +2017,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
 
         cube_faces = self._prepare_test_data_cube_padding(dtype=torch.bfloat16)
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Check that dtype is preserved
         self.assertEqual(padded_faces.dtype, torch.bfloat16)
@@ -2031,7 +2032,7 @@ class TestFunctionsBaseTest(unittest.TestCase):
             # Set each face to its index value for easier verification
             cube_faces[face_idx, :, :, :] = face_idx
 
-        padded_faces = pad_cube_faces(cube_faces)
+        padded_faces = _pad_cube_faces(cube_faces)
 
         # Verify central values (should be unchanged)
         for face_idx in range(6):
