@@ -1207,3 +1207,35 @@ def pad_180_to_360(
 
     e_img_padded = _nchw2nhwc(e_img_padded) if not channels_first else e_img_padded
     return e_img_padded
+
+
+def crop_360_to_180_image(e_img: torch.Tensor, channels_first: bool = True) -> torch.Tensor:
+    """
+    Crop a 360-degree equirectangular image to the central 180-degree part.
+
+    Args:
+        e_img (torch.Tensor): Input equirectangular image tensor in the shape
+            of: [C, H, W] or [H, W, C]. Or with a batch dimension: [B, C, H, W]
+            or [B, H, W, C].
+        channels_first (bool, optional): The channel format of e_img. PyTorch
+            uses channels first. Default: 'True'
+
+    Returns:
+        torch.Tensor: A cropped 180-degree equirectangular image.
+
+    Raises:
+        ValueError: If the input image width is not even.
+    """
+    assert e_img.dim() in [3, 4], f"image should have 3 or 4 dimensions, got {e_img.dim()}"
+    e_img = _nhwc2nchw(e_img) if not channels_first else e_img
+    width = e_img.shape[2] if e_img.dim() == 4 else e_img.shape[2]
+    if width % 2 != 0:
+        raise ValueError(f"Width must be even, got {width}")
+
+    # Crop the central 180-degree part by slicing the image.
+    crop_start = width // 4
+    crop_end = 3 * width // 4
+
+    cropped_img = e_img[..., crop_start:crop_end]
+    cropped_img = _nchw2nhwc(cropped_img) if not channels_first else cropped_img
+    return cropped_img
