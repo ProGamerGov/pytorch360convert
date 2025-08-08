@@ -1141,10 +1141,10 @@ def e2e(
         roll_rad, torch.tensor([1.0, 0.0, 0.0], device=e_img.device, dtype=e_img.dtype)
     )
     Ry = rotation_matrix(
-        yaw_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
+        yaw_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
     )
     Rz = rotation_matrix(
-        pitch_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+        pitch_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
     )
 
     # Apply rotations: first roll, then pitch, then yaw
@@ -1207,3 +1207,4 @@ def pad_180_to_360(
 
     e_img_padded = _nchw2nhwc(e_img_padded) if not channels_first else e_img_padded
     return e_img_padded
+
