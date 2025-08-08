@@ -1102,7 +1102,7 @@ def e2e(
     """
 
     roll = roll
-    yaw = h_deg
+    yaw = -h_deg
     pitch = v_deg
 
     assert e_img.dim() == 3 or e_img.dim() == 4, (
@@ -1207,5 +1207,6 @@ def pad_180_to_360(
 
     e_img_padded = _nchw2nhwc(e_img_padded) if not channels_first else e_img_padded
     return e_img_padded
+
 
 
