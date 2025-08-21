@@ -1102,7 +1102,7 @@ def e2e(
     """
 
     roll = roll
-    yaw = h_deg
+    yaw = -h_deg
     pitch = v_deg
 
     assert e_img.dim() == 3 or e_img.dim() == 4, (
@@ -1138,13 +1138,18 @@ def e2e(
 
     # Create rotation matrices
     Rx = rotation_matrix(
-        roll_rad, torch.tensor([1.0, 0.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+        roll_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
     )
     Ry = rotation_matrix(
-        yaw_rad, torch.tensor([0.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
+        pitch_rad, torch.tensor([1.0, 0.0, 1.0], device=e_img.device, dtype=e_img.dtype)
     )
-    Rz = rotation_matrix(
-        pitch_rad, torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype)
+    Rz = (
+        rotation_matrix(
+            yaw_rad,
+            torch.tensor([0.0, 1.0, 0.0], device=e_img.device, dtype=e_img.dtype),
+        )
+        @ Rx
+        @ Ry
     )
 
     # Apply rotations: first roll, then pitch, then yaw
